@@ -1,0 +1,48 @@
+{
+  "name": "pulse",
+  "version": "1.0.0",
+  "description": "A minimal new tab that refreshes daily with curated content—so every open feels new.",
+  "scripts": {
+    "build": "npm run build:prod",
+    "build:dev": "cross-env API_ENV=development webpack --mode development",
+    "build:prod": "cross-env API_ENV=production webpack --mode production",
+    "clean": "rm -rf dist .turbo",
+    "dev": "cross-env API_ENV=development webpack --mode development --watch",
+    "watch": "cross-env API_ENV=development webpack --mode development --watch"
+  },
+  "keywords": [
+    "chrome-extension",
+    "react",
+    "new-tab"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "@babel/preset-react": "^7.22.0",
+    "@tailwindcss/postcss": "^4.1.4",
+    "babel-loader": "^9.1.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "cross-env": "^7.0.3",
+    "css-loader": "^6.8.0",
+    "postcss": "^8.4.49",
+    "postcss-loader": "^8.1.1",
+    "style-loader": "^3.3.0",
+    "tailwindcss": "^4.1.4",
+    "webpack": "^5.87.0",
+    "webpack-cli": "^5.1.0"
+  },
+  "dependencies": {
+    "@fontsource/geist-mono": "^5.2.7",
+    "@fontsource/geist-sans": "^5.2.5",
+    "@mantine/core": "^8.3.18",
+    "@mantine/hooks": "^8.3.18",
+    "@phosphor-icons/react": "^2.1.10",
+    "axios": "^1.15.0",
+    "dayjs": "^1.11.20",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^5.0.14"
+  }
+}

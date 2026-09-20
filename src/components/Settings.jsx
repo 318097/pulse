@@ -1,0 +1,58 @@
+import useStore from "../store";
+import { Modal, Button, Card, Stack, Group, Text, Switch } from "@mantine/core";
+
+const Settings = () => {
+  const { showSettingsDialog, toggleSettingsDialog, entities, setEntities } =
+    useStore();
+
+  const updateEntity = (id, updatedFields) => {
+    const updatedEntities = entities.map((entity) =>
+      entity._id === id ? { ...entity, ...updatedFields } : entity,
+    );
+    setEntities(updatedEntities);
+  };
+
+  return (
+    <Modal
+      opened={showSettingsDialog}
+      onClose={toggleSettingsDialog}
+      title="Settings"
+      centered
+      size={"lg"}
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+    >
+      <Stack>
+        {entities.map((entity) => (
+          <Card shadow="sm" padding="xs" withBorder key={entity._id}>
+            <Group justify="space-between">
+              <Text fw={500}>{entity.label}</Text>
+              <Switch
+                color="teal"
+                checked={entity.enabled}
+                onChange={(event) =>
+                  updateEntity(entity._id, {
+                    enabled: event.currentTarget.checked,
+                  })
+                }
+              />
+            </Group>
+            {/* <Text size="sm" c="dimmed">
+              With Fjord Tours you can explore more of the magical fjord
+              landscapes with tours and activities on and around the fjords of
+              Norway
+            </Text> */}
+            <Text size="sm" c="dimmed">
+              Fetched {entity.history.length} items.
+            </Text>
+          </Card>
+        ))}
+      </Stack>
+      {/* <Button onClick={toggleSettingsDialog}>Close</Button> */}
+    </Modal>
+  );
+};
+
+export default Settings;
