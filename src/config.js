@@ -17,7 +17,9 @@ export const APP_CONFIG = {
   baseUrl: BASE_URL,
 };
 
-const DEFAULT_KEY = "pulse:entities";
+export const DEFAULT_ENTITIES_KEY = "pulse:entities";
+export const DEFAULT_ACTIVE_ENTITY_KEY = "pulse:activeEntity";
+
 const TWELVE_HRS = 60 * 60 * 12; // 12 hours in seconds
 const ONE_MIN = 60; // 1 minute in seconds
 
@@ -33,9 +35,13 @@ const defaultConfig = {
   },
 };
 
-export const KEYS_TO_SKIP = ["db", "history"];
+export const KEYS_TO_SKIP = ["db", "history", "enabled"];
 
-export const getDataFromStorage = (defaultValues, cb, key = DEFAULT_KEY) => {
+export const getDataFromStorage = (
+  defaultValues,
+  cb,
+  key = DEFAULT_ENTITIES_KEY,
+) => {
   const storage = typeof chrome !== "undefined" ? chrome.storage?.local : null;
   storage.get([key], (result) => {
     const appData = result?.[key];
@@ -51,9 +57,9 @@ export const getDataFromStorage = (defaultValues, cb, key = DEFAULT_KEY) => {
   });
 };
 
-export const saveDataToStorage = (data, key = DEFAULT_KEY) => {
+export const saveDataToStorage = (data, key = DEFAULT_ENTITIES_KEY) => {
   const storage = typeof chrome !== "undefined" ? chrome.storage?.local : null;
-  if (storage && data) {
+  if (storage && data != null) {
     storage.set({ [key]: JSON.stringify(data) });
   }
 };
