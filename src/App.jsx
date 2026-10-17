@@ -13,23 +13,6 @@ import { useTailwindDarkMode } from "./hooks/useTailwindDarkMode";
 
 const DEFAULT_ENTITIES = buildDefaultEntities();
 
-const validateEntities = (value) => {
-  if (!Array.isArray(value)) {
-    throw new Error("Entities config must be an array.");
-  }
-
-  for (const entity of value) {
-    if (!entity || typeof entity !== "object") {
-      throw new Error("Each entity must be an object.");
-    }
-    if (!entity._id || !entity.api) {
-      throw new Error("Each entity must contain _id and api.");
-    }
-  }
-
-  return value;
-};
-
 export default function App() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { toggleSettingsDialog, entities, setEntities } = useStore();
@@ -37,12 +20,7 @@ export default function App() {
 
   // Load entities from storage on mount (once)
   React.useEffect(() => {
-    const loadEntities = () => {
-      getDataFromStorage(DEFAULT_ENTITIES, (storedEntities) => {
-        setEntities(validateEntities(storedEntities));
-      });
-    };
-    loadEntities();
+    getDataFromStorage(DEFAULT_ENTITIES, setEntities);
   }, []);
 
   // Sync entities to storage whenever they change

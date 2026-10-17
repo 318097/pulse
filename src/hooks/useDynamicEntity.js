@@ -62,10 +62,10 @@ export const useDynamicEntity = (entity, onUpdate) => {
 
     fetchData();
 
-    if (entity.refreshDuration) {
-      const intervalId = setInterval(fetchData, entity.refreshDuration * 1000);
-      return () => clearInterval(intervalId);
-    }
+    // if (entity.refreshDuration) {
+    //   const intervalId = setInterval(fetchData, entity.refreshDuration * 1000);
+    //   return () => clearInterval(intervalId);
+    // }
 
     return undefined;
   }, [entity, fetchData]);

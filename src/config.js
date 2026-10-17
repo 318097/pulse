@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 const API_ENV = (
   process.env.API_ENV ||
   process.env.NODE_ENV ||
@@ -15,6 +17,7 @@ export const APP_CONFIG = {
   baseUrl: BASE_URL,
 };
 
+const DEFAULT_KEY = "pulse:entities";
 const TWELVE_HRS = 60 * 60 * 12; // 12 hours in seconds
 const ONE_MIN = 60; // 1 minute in seconds
 
@@ -30,7 +33,7 @@ const defaultConfig = {
   },
 };
 
-const DEFAULT_KEY = "pulse:entities";
+export const KEYS_TO_SKIP = ["db", "history"];
 
 export const getDataFromStorage = (defaultValues, cb, key = DEFAULT_KEY) => {
   const storage = typeof chrome !== "undefined" ? chrome.storage?.local : null;
@@ -75,3 +78,5 @@ export const buildDefaultEntities = () => [
     api: `${BASE_URL}/keybindings`,
   },
 ];
+
+export const ENTITY_MAP = _.keyBy(buildDefaultEntities(), "_id");
