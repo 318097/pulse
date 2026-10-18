@@ -8,20 +8,26 @@ body,
   width: 100%;
 }
 
+/* Change font-size here to scale the whole card; child sizes below are em-relative. */
 .content-card {
+  font-size: 1rem;
+  line-height: normal;
+
   .card {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
+    gap: 6px;
   }
 
   h6 {
-    @apply text-xs;
+    font-size: 0.75em;
   }
 
   h2 {
-    @apply text-xl font-bold;
+    font-size: 1.25em;
+    @apply font-bold;
   }
 
   h4 {
@@ -30,16 +36,20 @@ body,
 
   h4,
   p {
-    @apply text-base;
+    font-size: 1em;
   }
 
   a {
     transition: 0.1s all;
-    @apply text-sm;
+    font-size: 0.875em;
   }
 
   code {
-    @apply text-xs font-mono border border-neutral-300 dark:border-neutral-600 rounded px-1 py-0.5 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200;
+    font-size: 0.75em;
+    /* em here is code's own size, so /0.75 gives 2px 4px padding and 4px radius at a 16px base */
+    padding: calc(0.125em / 0.75) calc(0.25em / 0.75);
+    border-radius: calc(0.25em / 0.75);
+    @apply font-mono border border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200;
   }
 
   a:hover {

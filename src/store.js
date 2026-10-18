@@ -2,8 +2,6 @@ import { create } from "zustand";
 import {
   DEFAULT_ENTITIES_KEY,
   DEFAULT_ACTIVE_ENTITY_KEY,
-  ENTITY_MAP,
-  KEYS_TO_SKIP,
   saveDataToStorage,
 } from "./config";
 import _ from "lodash";
@@ -14,19 +12,7 @@ const useStore = create((set) => ({
   visibleEntities: [],
   activeEntityIdx: 0,
   loading: true,
-  setEntities: (data) => {
-    const entities = data.map((entity) => {
-      const defaultEntity = ENTITY_MAP[entity._id];
-
-      if (!defaultEntity) {
-        return entity;
-      }
-      return {
-        ...defaultEntity,
-        ..._.pick(entity, KEYS_TO_SKIP),
-      };
-    });
-
+  setEntities: (entities) => {
     const visibleEntities = entities.filter((entity) => entity.enabled);
 
     if (entities.length) saveDataToStorage(entities, DEFAULT_ENTITIES_KEY);

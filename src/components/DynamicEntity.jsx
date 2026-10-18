@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  Alert,
-  Button,
-  Group,
-  Loader,
-  Stack,
-  Text,
-  ActionIcon,
-} from "@mantine/core";
+import { Group, Loader, Text, ActionIcon, Badge } from "@mantine/core";
 import { useDynamicEntity } from "../hooks/useDynamicEntity";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -73,10 +65,10 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
   if (loading && !data) return <Loading entity={entity} />;
 
   return (
-    <div className="flex flex-col justify-start items-stretch gap-1 rounded p-6 w-full dark:bg-black/10 backdrop-blur-md shadow-xl">
-      <div className="text-[8px] uppercase text-steel-100 bg-gray-100 p-1 w-max rounded-md dark:bg-black/20 dark:text-steel-200">
+    <div className="flex flex-col justify-start items-stretch gap-4 rounded p-8 w-full dark:bg-black/10 backdrop-blur-md shadow-xl">
+      <Badge variant="light" color="blue" size="sm" radius="sm">
         {label}
-      </div>
+      </Badge>
       <div
         className="content-card"
         dangerouslySetInnerHTML={{
@@ -89,11 +81,11 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
             <ActionIcon {...iconProps} size="sm" color="red">
               <WarningOctagonIcon />
             </ActionIcon>
-            {`${error}.` || `Failed to fetch ${label || "entity"}.`}
+            {error ? `${error}.` : `Failed to fetch ${label || "entity"}.`}
           </div>
         ) : loading ? (
           <Loading entity={entity} align="start" size="xs" />
-        ) : !!nextResetAt ? (
+        ) : nextResetAt ? (
           <div className="text-xs italic">
             Next refresh {dayjs(nextResetAt).fromNow()}.
           </div>

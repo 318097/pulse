@@ -27,10 +27,15 @@ const Settings = () => {
       <Stack>
         {entities.map((entity) => (
           <Card shadow="sm" padding="xs" withBorder key={entity._id}>
-            <Group justify="space-between">
-              <Text fw={500}>{entity.label}</Text>
+            <Group justify="space-between" align="center">
+              <div className="flex flex-col">
+                <Text fw={500}>{entity.label}</Text>
+                <Text size="sm" c="dimmed">
+                  Fetched {entity.history.length} items.
+                </Text>
+              </div>
               <Switch
-                color="teal"
+                // color="teal"
                 checked={entity.enabled}
                 onChange={(event) =>
                   updateEntity(entity._id, {
@@ -44,9 +49,6 @@ const Settings = () => {
               landscapes with tours and activities on and around the fjords of
               Norway
             </Text> */}
-            <Text size="sm" c="dimmed">
-              Fetched {entity.history.length} items.
-            </Text>
           </Card>
         ))}
       </Stack>

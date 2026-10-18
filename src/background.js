@@ -1,9 +1,10 @@
 import {
-  APP_CONFIG,
   buildDefaultEntities,
   getDataFromStorage,
+  KEYS_TO_SKIP,
   saveDataToStorage,
 } from "./config";
+import _ from "lodash";
 
 const runVersionUpdateCallback = (callback) => {
   chrome.runtime.onInstalled.addListener((details) => {
@@ -26,22 +27,19 @@ const onExtensionVersionUpdated = (previousVersion, currentVersion) => {
   if (previousVersion !== currentVersion) {
     let version = currentVersion;
 
-    // if (currentVersion === "1.5.0") {
-    //   getDataFromStorage(buildDefaultEntities(), (storedEntities) => {
-    //     const updatedEntities = storedEntities.map((entity) => {
-    //       if (entity._id === "vocab") {
-    //         return {
-    //           ...entity,
-    //           refreshDuration: 120,
-    //         };
-    //       }
-    //       return entity;
-    //     });
-    //     saveDataToStorage(updatedEntities);
+    getDataFromStorage(null, (storedEntities) => {
+      const defaultEntities = buildDefaultEntities();
+      if (!storedEntities) return defaultEntities;
 
-    //     // version = "1.5.0";
-    //   });
-    // }
+      const updatedEntities = defaultEntities.map((entity) => {
+        const matchedEntity = storedEntities.find((e) => e._id === entity._id);
+
+        if (!matchedEntity) return entity;
+
+        return { ...entity, ..._.pick(matchedEntity, KEYS_TO_SKIP) };
+      });
+      saveDataToStorage(updatedEntities);
+    });
   }
 };
 

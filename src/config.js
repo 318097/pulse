@@ -77,12 +77,13 @@ export const buildDefaultEntities = () => [
     label: "Tech bites",
     api: `${BASE_URL}/tech-snippets`,
   },
-  {
-    ...defaultConfig,
-    _id: "keybindings",
-    label: "Keybindings",
-    api: `${BASE_URL}/keybindings`,
-  },
+  // {
+  //   ...defaultConfig,
+  //   _id: "keybindings",
+  //   label: "Keybindings",
+  //   api: `${BASE_URL}/keybindings`,
+  //   enabled: false,
+  // },
 ];
 
 export const ENTITY_MAP = _.keyBy(buildDefaultEntities(), "_id");
