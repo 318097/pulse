@@ -4,7 +4,7 @@ import {
   KEYS_TO_SKIP,
   saveDataToStorage,
 } from "./config";
-import _ from "lodash";
+import pick from "lodash/pick";
 
 const runVersionUpdateCallback = (callback) => {
   chrome.runtime.onInstalled.addListener((details) => {
@@ -34,7 +34,7 @@ const onExtensionVersionUpdated = (previousVersion, currentVersion) => {
 
         if (!matchedEntity) return entity;
 
-        return { ...entity, ..._.pick(matchedEntity, KEYS_TO_SKIP) };
+        return { ...entity, ...pick(matchedEntity, KEYS_TO_SKIP) };
       });
       saveDataToStorage(updatedEntities);
     });

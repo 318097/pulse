@@ -1,4 +1,4 @@
-import _ from "lodash";
+import keyBy from "lodash/keyBy";
 
 const API_ENV = (
   process.env.API_ENV ||
@@ -88,4 +88,4 @@ export const buildDefaultEntities = () => [
   // },
 ];
 
-export const ENTITY_MAP = _.keyBy(buildDefaultEntities(), "_id");
+export const ENTITY_MAP = keyBy(buildDefaultEntities(), "_id");
