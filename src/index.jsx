@@ -8,7 +8,7 @@ import {
 import "@fontsource/geist-sans";
 import "@fontsource/geist-mono";
 import "./styles/tailwind.css";
-import "@mantine/core/styles.css";
+import "@mantine/core/styles.layer.css";
 import App from "./App";
 
 const theme = createTheme({

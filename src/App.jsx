@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ActionIcon, useMantineColorScheme } from "@mantine/core";
+import { ActionIcon, Badge, useMantineColorScheme } from "@mantine/core";
 import DynamicEntity from "./components/DynamicEntity";
 import {
   DEFAULT_ACTIVE_ENTITY_KEY,
@@ -69,7 +69,16 @@ export default function App() {
 
   return (
     <div className="w-full h-full flex items-center justify-center overflow-y-auto">
-      <div className="flex flex-col gap-4 w-140 h-full items-center justify-center">
+      <div className="flex flex-col gap-2 w-140 h-full items-center justify-center">
+        <Badge
+          className="self-start mb-2"
+          variant="light"
+          color="blue"
+          size="sm"
+          radius="sm"
+        >
+          {activeEntity.label}
+        </Badge>
         <DynamicEntity
           entity={activeEntity}
           onError={handleEntityError}

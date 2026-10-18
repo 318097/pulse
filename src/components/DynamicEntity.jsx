@@ -4,7 +4,6 @@ import {
   Loader,
   Text,
   ActionIcon,
-  Badge,
   Paper,
   Divider,
 } from "@mantine/core";
@@ -80,16 +79,12 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
   if (loading && !data) return <Loading entity={entity} />;
 
   return (
-    <Paper className="w-full" withBorder radius="md" bg="dark.6" p="xl">
-      <Badge
-        className="mb-2"
-        variant="light"
-        color="blue"
-        size="sm"
-        radius="sm"
-      >
-        {label}
-      </Badge>
+    <Paper
+      className="w-full bg-[#232428] shadow-pulse-card"
+      withBorder
+      radius="md"
+      p="xl"
+    >
       <div
         className={`content-card ${entity._id}`}
         dangerouslySetInnerHTML={{
