@@ -8,7 +8,9 @@
     "build:prod": "cross-env API_ENV=production webpack --mode production",
     "clean": "rm -rf dist .turbo",
     "dev": "cross-env API_ENV=development webpack --mode development --watch",
-    "watch": "cross-env API_ENV=development webpack --mode development --watch"
+    "watch": "cross-env API_ENV=development webpack --mode development --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [
     "chrome-extension",
@@ -21,11 +23,17 @@
     "@babel/core": "^7.22.0",
     "@babel/preset-env": "^7.22.0",
     "@babel/preset-react": "^7.22.0",
+    "@eslint/js": "^9.39.5",
     "@tailwindcss/postcss": "^4.1.4",
     "babel-loader": "^9.1.0",
     "copy-webpack-plugin": "^11.0.0",
     "cross-env": "^7.0.3",
     "css-loader": "^6.8.0",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
     "postcss": "^8.4.49",
     "postcss-loader": "^8.1.1",
     "style-loader": "^3.3.0",
