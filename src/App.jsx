@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { ActionIcon, Badge, useMantineColorScheme } from "@mantine/core";
 import DynamicEntity from "./components/DynamicEntity";
+import Header from "./components/Header";
 import {
   DEFAULT_ACTIVE_ENTITY_KEY,
   DEFAULT_ENTITIES_KEY,
   buildDefaultEntities,
   getDataFromStorage,
 } from "./config";
-import { SunDimIcon, MoonIcon, GearIcon } from "@phosphor-icons/react";
+import { SunDimIcon, MoonIcon } from "@phosphor-icons/react";
 import useStore from "./store";
 import Settings from "./components/Settings";
 import { useTailwindDarkMode } from "./hooks/useTailwindDarkMode";
@@ -39,7 +40,6 @@ const handleEntityUpdate = (entityId, data) => {
 export default function App() {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const {
-    toggleSettingsDialog,
     setEntities,
     setActiveEntityIdx,
     visibleEntities,
@@ -68,24 +68,27 @@ export default function App() {
   if (!activeEntity || loading) return null;
 
   return (
-    <div className="w-full h-full flex items-center justify-center overflow-y-auto">
-      <div className="flex flex-col gap-2 w-140 h-full items-center justify-center">
-        <Badge
-          className="self-start mb-2"
-          variant="light"
-          color="blue"
-          size="sm"
-          radius="sm"
-        >
-          {activeEntity.label}
-        </Badge>
-        <DynamicEntity
-          entity={activeEntity}
-          onError={handleEntityError}
-          onUpdate={handleEntityUpdate}
-        />
-      </div>
-      <div className="fixed bottom-4 right-4 flex flex-col gap-1">
+    <div className="w-full h-full flex flex-col overflow-y-auto">
+      <Header />
+      <main className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col gap-2 w-140 items-center justify-center">
+          <Badge
+            className="self-start mb-2"
+            variant="light"
+            color="blue"
+            size="sm"
+            radius="sm"
+          >
+            {activeEntity.label}
+          </Badge>
+          <DynamicEntity
+            entity={activeEntity}
+            onError={handleEntityError}
+            onUpdate={handleEntityUpdate}
+          />
+        </div>
+      </main>
+      {/* <div className="fixed bottom-4 right-4">
         <ActionIcon
           variant="subtle"
           color="cyan"
@@ -93,14 +96,7 @@ export default function App() {
         >
           {colorScheme === "dark" ? <SunDimIcon /> : <MoonIcon />}
         </ActionIcon>
-        <ActionIcon
-          variant="subtle"
-          color="pink"
-          onClick={() => toggleSettingsDialog()}
-        >
-          <GearIcon />
-        </ActionIcon>
-      </div>
+      </div> */}
       <Settings />
     </div>
   );
