@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Group, Loader, Text, ActionIcon, Badge } from "@mantine/core";
 import { useDynamicEntity } from "../hooks/useDynamicEntity";
 import dayjs from "dayjs";
@@ -45,7 +45,7 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
       ? dayjs(lastUpdatedAt).add(refreshDuration, "second").toISOString()
       : null;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error && onError) {
       onError(error);
     }

@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { ActionIcon, useMantineColorScheme } from "@mantine/core";
 import DynamicEntity from "./components/DynamicEntity";
 import {
@@ -52,7 +52,7 @@ export default function App() {
   const activeEntity = visibleEntities[activeEntityIdx];
 
   // Load entities from storage on mount (once); zustand setters are stable
-  React.useEffect(() => {
+  useEffect(() => {
     getDataFromStorage(
       buildDefaultEntities(),
       setEntities,
