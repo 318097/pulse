@@ -4,7 +4,6 @@ import {
   DEFAULT_ACTIVE_ENTITY_KEY,
   saveDataToStorage,
 } from "./config";
-import _ from "lodash";
 
 const useStore = create((set) => ({
   showSettingsDialog: false,
@@ -17,10 +16,7 @@ const useStore = create((set) => ({
 
     if (entities.length) saveDataToStorage(entities, DEFAULT_ENTITIES_KEY);
 
-    set((state) => ({
-      entities,
-      visibleEntities,
-    }));
+    set({ entities, visibleEntities });
   },
   setActiveEntityIdx: (id) => {
     set((state) => {

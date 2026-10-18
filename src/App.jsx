@@ -1,12 +1,11 @@
 import React from "react";
-import { ActionIcon, Stack, useMantineColorScheme } from "@mantine/core";
+import { ActionIcon, useMantineColorScheme } from "@mantine/core";
 import DynamicEntity from "./components/DynamicEntity";
 import {
   DEFAULT_ACTIVE_ENTITY_KEY,
   DEFAULT_ENTITIES_KEY,
   buildDefaultEntities,
   getDataFromStorage,
-  saveDataToStorage,
 } from "./config";
 import { SunDimIcon, MoonIcon, GearIcon } from "@phosphor-icons/react";
 import useStore from "./store";
@@ -52,7 +51,7 @@ export default function App() {
   // calculate it on every render so that it updates when the activeEntityIdx changes
   const activeEntity = visibleEntities[activeEntityIdx];
 
-  // Load entities from storage on mount (once)
+  // Load entities from storage on mount (once); zustand setters are stable
   React.useEffect(() => {
     getDataFromStorage(
       buildDefaultEntities(),
@@ -64,7 +63,7 @@ export default function App() {
       (id) => setActiveEntityIdx(id === null ? 0 : id + 1),
       DEFAULT_ACTIVE_ENTITY_KEY,
     );
-  }, []);
+  }, [setEntities, setActiveEntityIdx]);
 
   if (!activeEntity || loading) return null;
 

@@ -25,8 +25,6 @@ const onExtensionVersionUpdated = (previousVersion, currentVersion) => {
     `[Pulse] Extension updated from ${previousVersion} to ${currentVersion}`,
   );
   if (previousVersion !== currentVersion) {
-    let version = currentVersion;
-
     getDataFromStorage(null, (storedEntities) => {
       const defaultEntities = buildDefaultEntities();
       if (!storedEntities) return defaultEntities;

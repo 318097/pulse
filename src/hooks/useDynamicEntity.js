@@ -60,6 +60,9 @@ export const useDynamicEntity = (entity, onUpdate) => {
   useEffect(() => {
     if (!entity || !entity.api) return undefined;
 
+    // Fetching here is syncing with an external system; the loading flag set
+    // before the request starts is intentional
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
 
     // if (entity.refreshDuration) {

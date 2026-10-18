@@ -1,5 +1,5 @@
 import useStore from "../store";
-import { Modal, Button, Card, Stack, Group, Text, Switch } from "@mantine/core";
+import { Modal, Card, Stack, Group, Text, Switch } from "@mantine/core";
 
 const Settings = () => {
   const { showSettingsDialog, toggleSettingsDialog, entities, setEntities } =

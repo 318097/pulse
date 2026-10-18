@@ -25,10 +25,19 @@ const Loading = ({ align = "center", entity, size = "sm" }) => (
 
 export default function DynamicEntity({ entity, onError, onUpdate }) {
   const { refreshDuration, history = [], label, db } = entity || {};
-  const { data, loading, error, refetch } = useDynamicEntity(entity, onUpdate);
+  const { data, loading, error } = useDynamicEntity(entity, onUpdate);
   const historyLength = history?.length || 0;
   const defaultHistoryIdx = historyLength > 0 ? historyLength - 1 : null;
   const [historyIdx, setHistoryIdx] = useState(defaultHistoryIdx);
+
+  // reset history index whenever entity changes; adjusting state during render
+  // avoids the extra render a useEffect reset would cause
+  const historyKey = `${entity._id}:${historyLength}`;
+  const [prevHistoryKey, setPrevHistoryKey] = useState(historyKey);
+  if (historyKey !== prevHistoryKey) {
+    setPrevHistoryKey(historyKey);
+    setHistoryIdx(defaultHistoryIdx);
+  }
 
   const lastUpdatedAt = db?.apiParams?.lastUpdatedAt;
   const nextResetAt =
@@ -41,10 +50,6 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
       onError(error);
     }
   }, [error, onError]);
-
-  React.useEffect(() => {
-    setHistoryIdx(defaultHistoryIdx); // reset history index whenever entity changes
-  }, [entity._id, historyLength, defaultHistoryIdx]);
 
   const handleHistoryNavigation = (direction) => {
     if (historyLength === 0) return;
