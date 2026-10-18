@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Group, Loader, Text, ActionIcon, Badge } from "@mantine/core";
+import {
+  Group,
+  Loader,
+  Text,
+  ActionIcon,
+  Badge,
+  Paper,
+  Divider,
+} from "@mantine/core";
 import { useDynamicEntity } from "../hooks/useDynamicEntity";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -19,7 +27,9 @@ const iconProps = {
 const Loading = ({ align = "center", entity, size = "sm" }) => (
   <Group justify={align} gap="xs">
     <Loader size={size} color="yellow" />
-    <Text size={size}>Loading {entity?.label || "content"}.</Text>
+    <Text size={size} className="font-mono">
+      Loading {entity?.label || "content"}.
+    </Text>
   </Group>
 );
 
@@ -70,8 +80,14 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
   if (loading && !data) return <Loading entity={entity} />;
 
   return (
-    <div className="flex flex-col justify-start items-stretch gap-4 rounded p-8 w-full dark:bg-black/10 backdrop-blur-md shadow-xl">
-      <Badge variant="light" color="blue" size="sm" radius="sm">
+    <Paper className="w-full" withBorder radius="md" bg="dark.6" p="xl">
+      <Badge
+        className="mb-2"
+        variant="light"
+        color="blue"
+        size="sm"
+        radius="sm"
+      >
         {label}
       </Badge>
       <div
@@ -80,9 +96,10 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
           __html: finalData,
         }}
       />
+      <Divider className="my-6" />
       <div className="flex items-center justify-between flex-row-reverse">
         {error ? (
-          <div className="text-xs italic flex items-center">
+          <div className="text-xs font-mono flex items-center">
             <ActionIcon {...iconProps} size="sm" color="red">
               <WarningOctagonIcon />
             </ActionIcon>
@@ -91,8 +108,8 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
         ) : loading ? (
           <Loading entity={entity} align="start" size="xs" />
         ) : nextResetAt ? (
-          <div className="text-xs italic">
-            Next refresh {dayjs(nextResetAt).fromNow()}.
+          <div className="text-xs font-mono">
+            Next reset {dayjs(nextResetAt).fromNow()}.
           </div>
         ) : null}
         {historyLength > 1 && (
@@ -116,6 +133,6 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
           </div>
         )}
       </div>
-    </div>
+    </Paper>
   );
 }

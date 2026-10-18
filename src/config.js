@@ -1,5 +1,3 @@
-import keyBy from "lodash/keyBy";
-
 const API_ENV = (
   process.env.API_ENV ||
   process.env.NODE_ENV ||
@@ -72,13 +70,13 @@ export const buildDefaultEntities = () => [
     description: "One uncommon English word a day, with meaning and usage.",
     api: `${BASE_URL}/vocab`,
   },
-  // {
-  //   ...defaultConfig,
-  //   _id: "tech-bites",
-  //   description: "Short, digestible tech snippets to keep you updated.",
-  //   label: "Tech bites",
-  //   api: `${BASE_URL}/tech-snippets`,
-  // },
+  {
+    ...defaultConfig,
+    _id: "tech-bites",
+    description: "Short, digestible tech snippets to keep you updated.",
+    label: "Tech bites",
+    api: `${BASE_URL}/tech-snippets`,
+  },
   // {
   //   ...defaultConfig,
   //   _id: "keybindings",
@@ -87,5 +85,3 @@ export const buildDefaultEntities = () => [
   //   enabled: false,
   // },
 ];
-
-export const ENTITY_MAP = keyBy(buildDefaultEntities(), "_id");

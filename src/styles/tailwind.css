@@ -8,6 +8,18 @@ body,
   width: 100%;
 }
 
+body {
+  background-color: #0e0f11;
+  background-image: radial-gradient(
+    120% 85% at 50% -10%,
+    #26282e 0%,
+    #17181c 45%,
+    #0b0b0d 100%
+  );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
 /* Change font-size here to scale the whole card; child sizes below are em-relative. */
 .content-card {
   font-size: 1rem;
@@ -29,18 +41,31 @@ body,
     @apply font-bold;
   }
 
-  h4 {
+  .card h4 {
+    font-size: 1.6em;
     @apply font-bold;
   }
 
   h4,
   p {
     font-size: 1em;
+    line-height: 1.4em;
   }
 
   a {
     transition: 0.1s all;
     font-size: 0.875em;
+    color: var(--mantine-color-blue-3);
+    /* border instead of text-decoration: Chrome leaves a gap under the space in ::after */
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 50%, transparent);
+    padding-bottom: 0.15em;
+    @apply font-mono;
+  }
+
+  /* ↗ after every link; the nbsp keeps the arrow from wrapping onto its own line */
+  a::after {
+    content: "\00a0\2197";
   }
 
   code {
@@ -52,9 +77,7 @@ body,
   }
 
   a:hover {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-decoration-color: theme("colors.pink.500");
+    border-bottom: 2px solid theme("colors.pink.500");
   }
 }
 
@@ -64,8 +87,8 @@ body,
   }
 }
 
-.content-card.vocab {
+/* .content-card.vocab {
   h4 {
     font-size: 1.4em;
   }
-}
+} */
