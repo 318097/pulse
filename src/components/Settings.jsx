@@ -31,8 +31,11 @@ const Settings = () => {
               <div className="flex flex-col">
                 <Text fw={500}>{entity.label}</Text>
                 <Text size="sm" c="dimmed">
-                  Fetched {entity.history.length} items.
+                  {entity.description}
                 </Text>
+                {/* <Text size="sm" c="dimmed">
+                  Fetched {entity.history.length} items.
+                </Text> */}
               </div>
               <Switch
                 // color="teal"

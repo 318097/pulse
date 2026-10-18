@@ -75,7 +75,7 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
         {label}
       </Badge>
       <div
-        className="content-card"
+        className={`content-card ${entity._id}`}
         dangerouslySetInnerHTML={{
           __html: finalData,
         }}

@@ -18,7 +18,6 @@ body,
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    gap: 6px;
   }
 
   h6 {
@@ -56,5 +55,17 @@ body,
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-decoration-color: theme("colors.pink.500");
+  }
+}
+
+.content-card.tech-bites {
+  .card {
+    gap: 6px;
+  }
+}
+
+.content-card.vocab {
+  h4 {
+    font-size: 1.4em;
   }
 }
