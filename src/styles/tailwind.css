@@ -58,16 +58,36 @@ body {
     transition: 0.1s all;
     font-size: 0.875em;
     color: var(--mantine-color-blue-3);
-    /* border instead of text-decoration: Chrome leaves a gap under the space in ::after */
+    /* underline drawn as a background line so it stops before the arrow's 2ch padding */
     text-decoration: none;
-    border-bottom: 1px solid color-mix(in srgb, currentColor 50%, transparent);
+    background: linear-gradient(
+        color-mix(in srgb, currentColor 50%, transparent),
+        color-mix(in srgb, currentColor 50%, transparent)
+      )
+      left bottom / calc(100% - 2ch) 1px no-repeat;
     padding-bottom: 0.15em;
     @apply font-mono;
+
+    /* single line, capped at 100 characters (1ch = one mono character) plus 2ch for the arrow,
+       or the card width if that's narrower; clip (not hidden) keeps the inline baseline */
+    display: inline-block;
+    /* the card's 1.4em line-height would pad the box and push the underline down */
+    line-height: normal;
+    position: relative;
+    max-width: min(102ch, 100%);
+    padding-right: 2ch;
+    white-space: nowrap;
+    overflow: clip;
+    text-overflow: ellipsis;
   }
 
-  /* ↗ after every link; the nbsp keeps the arrow from wrapping onto its own line */
+  /* ↗ after every link, pinned in the right padding so the ellipsis can't clip it */
   a::after {
-    content: "\00a0\2197";
+    content: "\2197";
+    position: absolute;
+    right: 2px;
+    top: -2px;
+    transition: transform 0.1s;
   }
 
   code {
@@ -78,8 +98,14 @@ body {
     @apply font-mono border border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200;
   }
 
+  /* a shade lighter, underline at full strength, arrow nudged toward where it points */
   a:hover {
-    border-bottom: 2px solid theme("colors.pink.500");
+    color: var(--mantine-color-blue-2);
+    background-image: linear-gradient(currentColor, currentColor);
+  }
+
+  a:hover::after {
+    transform: translate(1px, -1px);
   }
 }
 

@@ -1,5 +1,5 @@
 import useStore from "../store";
-import { Modal, Card, Stack, Group, Text, Switch } from "@mantine/core";
+import { Modal, Stack, Group, Text, Switch } from "@mantine/core";
 
 const Settings = () => {
   const { showSettingsDialog, toggleSettingsDialog, entities, setEntities } =
@@ -24,9 +24,15 @@ const Settings = () => {
         blur: 3,
       }}
     >
-      <Stack>
+      <Text size="xs" c="dimmed" className="font-mono tracking-wider">
+        SOURCES
+      </Text>
+      <Stack gap={0}>
         {entities.map((entity) => (
-          <Card shadow="sm" padding="xs" withBorder key={entity._id}>
+          <div
+            className="py-3 border-b last:border-b-0 border-(--mantine-color-default-border)"
+            key={entity._id}
+          >
             <Group justify="space-between" align="center">
               <div className="flex flex-col">
                 <Text fw={500}>{entity.label}</Text>
@@ -38,7 +44,7 @@ const Settings = () => {
                 </Text> */}
               </div>
               <Switch
-                // color="teal"
+                color="blue"
                 checked={entity.enabled}
                 onChange={(event) =>
                   updateEntity(entity._id, {
@@ -52,7 +58,7 @@ const Settings = () => {
               landscapes with tours and activities on and around the fjords of
               Norway
             </Text> */}
-          </Card>
+          </div>
         ))}
       </Stack>
       {/* <Button onClick={toggleSettingsDialog}>Close</Button> */}
