@@ -23,6 +23,18 @@ const iconProps = {
   variant: "transparent",
 };
 
+// link-preview og:image/favicon URLs come from third-party pages and can 404;
+// drop broken ones so the card collapses instead of showing a broken-image icon
+const removeBrokenImage = (event) => {
+  if (event.target.tagName === "IMG") event.target.remove();
+};
+
+// a callback ref (not an effect) so the listener follows the content node when the
+// card remounts after loading; error doesn't bubble, hence the capture phase
+const watchBrokenImages = (node) => {
+  node?.addEventListener("error", removeBrokenImage, true);
+};
+
 const Loading = ({ align = "center", entity, size = "sm" }) => (
   <Group justify={align} gap="xs">
     <Loader size={size} color="yellow" />
@@ -86,6 +98,7 @@ export default function DynamicEntity({ entity, onError, onUpdate }) {
       p="xl"
     >
       <div
+        ref={watchBrokenImages}
         className={`content-card ${entity._id}`}
         dangerouslySetInnerHTML={{
           __html: finalData,
