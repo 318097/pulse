@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npm run build:prod",
     "build:dev": "cross-env API_ENV=development webpack --mode development",
-    "build:prod": "cross-env API_ENV=production webpack --mode production",
+    "build:prod": "node scripts/release.js && cross-env API_ENV=production webpack --mode production && zip -rqX dist.zip dist -x '*.DS_Store'",
     "clean": "rm -rf dist .turbo",
     "dev": "cross-env API_ENV=development webpack --mode development --watch",
     "watch": "cross-env API_ENV=development webpack --mode development --watch",
