@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pulse",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "A minimal new tab that refreshes daily with curated content—so every open feels new.",
   "permissions": [
     "storage"
