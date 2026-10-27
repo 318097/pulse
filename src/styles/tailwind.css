@@ -200,11 +200,22 @@ body {
   }
 }
 
-/* .content-card.vocab {
-  h4 {
-    font-size: 1.4em;
+.content-card.keybindings {
+  .shortcut-container {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    gap: 6px;
+    .platform {
+      @apply w-20 text-[10.5px] font-medium tracking-[.12em] text-[#A6A7AB];
+    }
+    .key {
+      @apply inline-flex h-[40px] min-w-[40px] items-center justify-center whitespace-nowrap rounded-[9px]
+      border border-b-[3px] border-[#3A3C42] border-b-[#17181C] bg-[#2C2E33] px-3
+      font-['Geist_Mono',ui-monospace,monospace] text-[17px] font-medium leading-none text-[#F2F2F2];
+    }
   }
-} */
+}
 
 @theme {
   --shadow-pulse-card:
