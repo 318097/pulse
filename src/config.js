@@ -18,12 +18,14 @@ export const APP_CONFIG = {
 export const DEFAULT_ENTITIES_KEY = "pulse:entities";
 export const DEFAULT_ACTIVE_ENTITY_KEY = "pulse:activeEntity";
 
-const TWELVE_HRS = 60 * 60 * 12; // 12 hours in seconds
 const ONE_MIN = 60; // 1 minute in seconds
+const ONE_HR = 60 * 60; // 1 hour in seconds
+const TWELVE_HRS = ONE_HR * 12; // 12 hours in seconds
 
 const defaultConfig = {
   refreshDuration: isProd ? TWELVE_HRS : ONE_MIN,
   enabled: true,
+  historySize: 50,
   history: [],
   db: {
     apiParams: {
@@ -33,7 +35,7 @@ const defaultConfig = {
   },
 };
 
-export const KEYS_TO_SKIP = ["db", "history", "enabled"];
+export const KEYS_TO_SKIP = ["db", "history", "enabled"]; // these keys are not overridden when updating an entity with new data from the API
 
 export const getDataFromStorage = (
   defaultValues,
@@ -67,21 +69,22 @@ export const buildDefaultEntities = () => [
     ...defaultConfig,
     _id: "vocab",
     label: "Vocabulary",
-    description: "One uncommon English word a day, with meaning and usage.",
+    description: "A rare English word with its meaning and an example.",
     api: `${BASE_URL}/vocab`,
   },
-  // {
-  //   ...defaultConfig,
-  //   _id: "tech-bites",
-  //   description: "Short, digestible tech snippets to keep you updated.",
-  //   label: "Tech bites",
-  //   api: `${BASE_URL}/tech-snippets`,
-  // },
-  // {
-  //   ...defaultConfig,
-  //   _id: "keybindings",
-  //   label: "Keybindings",
-  //   api: `${BASE_URL}/keybindings`,
-  //   enabled: false,
-  // },
+  {
+    ...defaultConfig,
+    _id: "code404",
+    label: "Tech bytes",
+    description: "Quick tech reads to keep you current.",
+    api: `${BASE_URL}/code404`,
+    refreshDuration: isProd ? ONE_HR * 4 : ONE_MIN,
+  },
+  {
+    ...defaultConfig,
+    _id: "keybindings",
+    label: "Keyboard shortcuts",
+    description: "Handy shortcuts to help you work faster.",
+    api: `${BASE_URL}/keybindings`,
+  },
 ];
