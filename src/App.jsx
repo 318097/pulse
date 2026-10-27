@@ -21,18 +21,20 @@ const handleEntityError = (error) => {
 
 const handleEntityUpdate = (entityId, data) => {
   const { entities, setEntities } = useStore.getState();
-  const updatedEntities = entities.map((entity) =>
-    entity._id === entityId
+  const updatedEntities = entities.map((entity) => {
+    const history = [
+      ...(entity.history || []),
+      { ...data, timestamp: new Date().toISOString() },
+    ];
+
+    return entity._id === entityId
       ? {
           ...entity,
           db: data,
-          history: [
-            ...(entity.history || []),
-            { ...data, timestamp: new Date().toISOString() },
-          ],
+          history: history.slice((entity.historySize || 50) * -1), // keep only the last `historySize` items
         }
-      : entity,
-  );
+      : entity;
+  });
 
   setEntities(updatedEntities);
 };
@@ -73,10 +75,10 @@ export default function App() {
       <main className="flex-1 flex items-center justify-center">
         <div className="flex flex-col gap-2 w-140 items-center justify-center">
           <Badge
-            className="self-start mb-2"
+            className="self-start mb-1 font-mono font-light"
             variant="light"
             color="blue"
-            size="sm"
+            size="md"
             radius="sm"
           >
             {activeEntity.label}
