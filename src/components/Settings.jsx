@@ -1,5 +1,6 @@
 import useStore from "../store";
 import { Modal, Stack, Group, Text, Switch } from "@mantine/core";
+import { convertDuration } from "../utils";
 
 const Settings = () => {
   const { showSettingsDialog, toggleSettingsDialog, entities, setEntities } =
@@ -33,11 +34,14 @@ const Settings = () => {
             className="py-3 border-b last:border-b-0 border-(--mantine-color-default-border)"
             key={entity._id}
           >
-            <Group justify="space-between" align="center">
+            <Group justify="space-between" align="start">
               <div className="flex flex-col">
                 <Text fw={500}>{entity.label}</Text>
                 <Text size="sm" c="dimmed">
                   {entity.description}
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Refreshes every {convertDuration(entity.refreshDuration)}.
                 </Text>
                 {/* <Text size="sm" c="dimmed">
                   Fetched {entity.history.length} items.
