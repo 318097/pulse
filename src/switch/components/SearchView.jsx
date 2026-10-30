@@ -9,6 +9,7 @@ import {
   copyText,
   openInCurrentTab,
   openLink,
+  runChromeAction,
   runCommand,
   runTask,
   switchToTab,
@@ -27,6 +28,7 @@ const ENTER_LABELS = {
   group: "expand",
   more: "show",
   command: "run",
+  chrome: "run",
   task: "run",
   keybinding: "copy keys",
 };
@@ -72,14 +74,14 @@ export default function SearchView({ onClose }) {
   );
   const [query, setQuery] = useState("");
   const [expandedGroupId, setExpandedGroupId] = useState(null);
-  const [showAllGlobals, setShowAllGlobals] = useState(false);
+  const [shownSections, setShownSections] = useState([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const rowRefs = useRef([]);
 
   const { sections, rows, tokens } = useMemo(
     () =>
-      buildSearchResults({ ...data, query, expandedGroupId, showAllGlobals }),
-    [data, query, expandedGroupId, showAllGlobals],
+      buildSearchResults({ ...data, query, expandedGroupId, shownSections }),
+    [data, query, expandedGroupId, shownSections],
   );
   const selected = rows[Math.min(selectedIdx, rows.length - 1)];
   const select = (idx) =>
@@ -94,9 +96,11 @@ export default function SearchView({ onClose }) {
       case "group":
         return setExpandedGroupId(row.expanded ? null : row.groupId);
       case "more":
-        return setShowAllGlobals(true);
+        return setShownSections((ids) => [...ids, row.sectionId]);
       case "command":
         return runCommand(row.commandId, onClose);
+      case "chrome":
+        return runChromeAction(row.actionId, onClose);
       case "keybinding":
         return copyText(row.keybinding.combo);
       case "link":

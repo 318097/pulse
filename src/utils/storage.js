@@ -33,3 +33,5 @@ export const readFromStorage = (key, fallback) =>
 export const saveDataToStorage = (data, key = DEFAULT_ENTITIES_KEY) => {
   if (data != null) chrome.storage.local.set({ [key]: JSON.stringify(data) });
 };
+
+export const removeFromStorage = (key) => chrome.storage.local.remove(key);

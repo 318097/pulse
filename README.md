@@ -15,9 +15,10 @@ A beautiful custom new tab page for Chrome built with React.
 Switch (ported from the standalone QuickSwitch extension) is a keyboard launcher built into Pulse. It opens as a modal on the new tab (header button or `Alt+J`) and as the toolbar popup on any other page (`Alt+J` or the toolbar icon).
 
 - **Shortcuts**: give a site a letter, then `Alt+J` + that letter switches to its open tab (the most recently used one) or opens it. `Shift` + letter shows the shortcut's details and open tabs; `+` adds one, prefilled from the current page.
-- **Search**: commands, web app pages (YouTube › Watch Later, GitHub › Pull Requests…), browser and `.new` pages, open tabs, your shortcuts, and the keyboard shortcut cards Pulse has shown you.
+- **Search**: commands, web app pages (YouTube › Watch Later, Gmail › Sent…), `.new` and other global links, Chrome, open tabs, your shortcuts, and the keyboard shortcut cards Pulse has shown you.
+- **Chrome**: tab and window actions (Incognito, duplicate, pin, mute, move to a new window, full screen), `chrome://` pages, and Chrome's own keyboard shortcuts, each shown with Chrome's key for it.
 - **Tab commands**: sort tabs (`Alt+Shift+J`), cycle same-site tabs (`Alt+Shift+K`), cycle tabs of starred shortcuts (`Alt+K`).
-- **Tasks**: import your YouTube playlists into search with YouTube › Fetch playlists (run it on youtube.com/feed/playlists).
+- **Tasks**: import your YouTube playlists into search with YouTube › Fetch playlists (run it on youtube.com/feed/playlists). Reset Switch data deletes your shortcuts and imported links (run it twice to confirm).
 
 Keys can be changed at `chrome://extensions/shortcuts` (also linked from Settings). The code lives in `src/switch/`.
 

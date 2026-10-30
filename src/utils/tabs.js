@@ -47,6 +47,12 @@ const TAB_ACTIONS = {
   },
   // Move `tabIds`, in that order, to `index` (-1 is the end of the window)
   move: ({ tabIds, index }) => chrome.tabs.move(tabIds, { index }),
+  // Move `tabId` out into a new window of its own
+  detach: ({ tabId }) => chrome.windows.create({ tabId }),
+  // A copy of `tabId`, right after it
+  duplicate: ({ tabId }) => chrome.tabs.duplicate(tabId),
+  pin: ({ tabId, pinned }) => chrome.tabs.update(tabId, { pinned }),
+  mute: ({ tabId, muted }) => chrome.tabs.update(tabId, { muted }),
   close: ({ tabId }) => chrome.tabs.remove(tabId),
 };
 

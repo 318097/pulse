@@ -3,6 +3,7 @@ import { DEFAULT_ENTITIES_KEY, SWITCH_KEY } from "../config";
 import {
   parseStored,
   readFromStorage,
+  removeFromStorage,
   saveDataToStorage,
 } from "../utils/storage";
 import { getCommandKeys } from "../utils/keys";
@@ -119,6 +120,13 @@ const useSwitchStore = create((set, get) => {
 
     resetImportedLinks: () => save({ urlList: [] }),
 
+    // Deletes everything Switch saved: shortcuts, imported links, last view.
+    // Other open panels clear theirs through syncSwitch.
+    resetSwitchData: async () => {
+      await removeFromStorage(SWITCH_KEY);
+      set({ ...pickSaved(), view: "search", params: {} });
+    },
+
     showToast: (message, type = "success") => {
       const toast = { id: Date.now(), message, type };
       set({ toast });
@@ -140,7 +148,10 @@ export const syncSwitch = () => {
 
   const onStorageChange = (changes, area) => {
     if (area !== "local") return;
-    const saved = parseStored(changes[SWITCH_KEY]?.newValue);
+    // A removed key (Reset Switch data) reads as nothing saved
+    const switchChange = changes[SWITCH_KEY];
+    const saved =
+      switchChange && parseStored(switchChange.newValue ?? "{}");
     const entities = parseStored(changes[DEFAULT_ENTITIES_KEY]?.newValue);
     if (saved) {
       const { shortcuts, urlList } = pickSaved(saved);

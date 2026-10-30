@@ -1,22 +1,41 @@
 // Builds the Search view's sections. Idle, web apps are collapsible groups; with a
 // query every section is filtered and groups flatten to "YouTube › Watch Later".
-import { COMMANDS, GLOBALS, TASKS, getWebappGroups } from "./catalog";
+import {
+  CHROME_ACTIONS,
+  CHROME_PAGES,
+  CHROME_SHORTCUTS,
+  COMMANDS,
+  GLOBALS,
+  TASKS,
+  getWebappGroups,
+} from "./catalog";
 import { matchesAll, pluralize, tokenize } from "../utils/text";
 import { displayUrl } from "../utils/url";
 
-const IDLE_GLOBALS_LIMIT = 5;
+const IDLE_SECTION_LIMIT = 5;
 const KEYBINDINGS_LIMIT = 6;
 
-// Navigation rows show the short URL ("youtube.com/feed/history"); Global rows
-// show it in full, since many are chrome:// or .new links. A link's `tag` (like
-// "playlist") is shown before its URL.
+// Navigation rows show the short URL ("youtube.com/feed/history"); Global and
+// Chrome rows show it in full, since they're .new and chrome:// links. A link's
+// `tag` (like "playlist") is shown before its URL.
 const linkRow = (link, title = link.title, shortUrl = false) => ({
   key: link.id,
   type: "link",
   title,
   subtitle: shortUrl ? displayUrl(link.url) : link.url,
   tag: link.tag,
+  keys: link.keys,
   url: link.url,
+});
+
+const keybindingRow = (keybinding, tag = keybinding.group) => ({
+  key: keybinding.id,
+  type: "keybinding",
+  title: keybinding.title,
+  subtitle: keybinding.description,
+  tag,
+  keys: keybinding.keys,
+  keybinding,
 });
 
 const taskRow = (task, title = task.title) => ({
@@ -91,19 +110,53 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
     return [parent, ...children];
   });
 
-const globalRows = (tokens, showAll) => {
-  const rows = GLOBALS.filter((link) =>
-    matchesAll(tokens, link.title, link.url),
-  ).map((link) => linkRow(link));
-  if (tokens.length || showAll || rows.length <= IDLE_GLOBALS_LIMIT)
-    return rows;
+// Chrome's actions, then its pages, then keys for what only Chrome can do. Every
+// row matches "chrome"; a toggle is titled for the tab Switch was opened on.
+const chromeRows = (tokens, currentTab) => {
+  const matches = (...fields) => matchesAll(tokens, "Chrome", ...fields);
+  const actions = CHROME_ACTIONS.map((action) => ({
+    ...action,
+    title:
+      typeof action.title === "function"
+        ? action.title(currentTab)
+        : action.title,
+  }))
+    .filter((action) => matches(action.title, action.description))
+    .map((action) => ({
+      key: `chrome-action:${action.id}`,
+      type: "chrome",
+      title: action.title,
+      subtitle: action.description,
+      keys: action.keys,
+      actionId: action.id,
+    }));
+  const pages = CHROME_PAGES.filter((page) =>
+    matches(page.title, page.url),
+  ).map((page) => linkRow(page));
+  const shortcuts = CHROME_SHORTCUTS.filter((shortcut) =>
+    matches(shortcut.title, shortcut.description),
+  ).map((shortcut) => keybindingRow(shortcut, "shortcut"));
 
+  return [...actions, ...pages, ...shortcuts];
+};
+
+// Idle, a long section lists its first rows and a "Show N more" row until that
+// row is picked
+const limitRows = (sectionId, rows, searching, shownSections) => {
+  if (
+    searching ||
+    shownSections.includes(sectionId) ||
+    rows.length <= IDLE_SECTION_LIMIT
+  ) {
+    return rows;
+  }
   return [
-    ...rows.slice(0, IDLE_GLOBALS_LIMIT),
+    ...rows.slice(0, IDLE_SECTION_LIMIT),
     {
-      key: "more:global",
+      key: `more:${sectionId}`,
       type: "more",
-      title: `Show ${rows.length - IDLE_GLOBALS_LIMIT} more`,
+      title: `Show ${rows.length - IDLE_SECTION_LIMIT} more`,
+      sectionId,
     },
   ];
 };
@@ -118,7 +171,7 @@ export const buildSearchResults = ({
   keybindings,
   commandKeys,
   expandedGroupId,
-  showAllGlobals,
+  shownSections,
 }) => {
   const tokens = tokenize(query);
   const searching = tokens.length > 0;
@@ -136,18 +189,12 @@ export const buildSearchResults = ({
     commandId: c.id,
   }));
 
+  // Cards for a Chrome shortcut the Chrome section already lists are left out
   const keybindingRows = keybindings
-    .filter((k) => matchesAll(tokens, k.title, k.description))
+    .filter((k) => !CHROME_SHORTCUTS.some(({ id }) => id === k.id))
+    .filter((k) => matchesAll(tokens, k.title, k.description, k.group))
     .slice(0, KEYBINDINGS_LIMIT)
-    .map((keybinding) => ({
-      key: keybinding.id,
-      type: "keybinding",
-      title: keybinding.title,
-      subtitle: keybinding.description,
-      tag: keybinding.group,
-      keys: keybinding.keys,
-      keybinding,
-    }));
+    .map((keybinding) => keybindingRow(keybinding));
 
   // The tab Switch was opened on is left out; switching to it does nothing
   const tabRows = tabs
@@ -169,19 +216,28 @@ export const buildSearchResults = ({
     .filter((t) => matchesAll(tokens, t.title, t.description))
     .map((t) => taskRow(t));
 
-  const global = [
+  // Counted in full, though idle they show only their first rows
+  const limited = (id, title, rows) => [
+    id,
+    title,
+    limitRows(id, rows, searching, shownSections),
+    rows.length,
+  ];
+  const global = limited(
     "global",
     "Global",
-    globalRows(tokens, showAllGlobals),
-    searching ? null : GLOBALS.length,
-  ];
+    GLOBALS.filter((link) => matchesAll(tokens, link.title, link.url)).map(
+      (link) => linkRow(link),
+    ),
+  );
+  const chrome = limited("chrome", "Chrome", chromeRows(tokens, currentTab));
   const openTabs = ["tabs", "Open tabs", tabRows];
   // Idle lists what Switch can do; a query leads with the closest matches
   const sections = [
     searching && ["keybindings", "Keyboard shortcuts", keybindingRows],
     ["commands", "Commands", commands],
     ["navigation", "Navigation", navigation, searching ? null : groups.length],
-    ...(searching ? [openTabs, global] : [global, openTabs]),
+    ...(searching ? [openTabs, global, chrome] : [global, chrome, openTabs]),
     ["tasks", "Tasks", taskRows],
   ]
     .filter((s) => s && s[2].length)

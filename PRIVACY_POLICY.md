@@ -69,7 +69,7 @@ Pulse does not share user data with third parties except when necessary to opera
 
 ## Data retention
 
-Locally cached extension data remains in the browser until it is replaced, cleared by the user, or the extension is removed.
+Locally cached extension data remains in the browser until it is replaced, cleared by the user, or the extension is removed. Switch's Reset Switch data task deletes its shortcuts and imported links at any time.
 
 Server logs, if collected by the hosting provider or API service, are retained only for operational, reliability, and security purposes and only as long as reasonably necessary.
 

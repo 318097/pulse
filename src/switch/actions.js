@@ -1,11 +1,12 @@
 // What happens when a Switch row, key or command is picked. `close` hides the
 // panel (closes the popup, or the modal on Pulse's new tab).
-import { COMMANDS, YOUTUBE_PLAYLISTS } from "./catalog";
+import { CHROME_ACTIONS, COMMANDS, YOUTUBE_PLAYLISTS } from "./catalog";
 import { pluralize } from "../utils/text";
 import { displayUrl } from "../utils/url";
 import { getActiveTab, openUrl, tabAction } from "../utils/tabs";
 import useSwitchStore from "./store";
 import {
+  CHROME_COMMANDS,
   fetchYouTubePlaylists,
   TAB_COMMANDS,
   YOUTUBE_PLAYLISTS_URL,
@@ -62,6 +63,15 @@ export const runCommand = attempt(async (id, close) => {
   showToast(COMMANDS.find((command) => command.id === id).none, "info");
 }, "Couldn't run that command.");
 
+export const runChromeAction = attempt(async (id, close) => {
+  const { windowId, showToast } = state();
+  if ((await CHROME_COMMANDS[id](windowId)) !== false) return close();
+  showToast(CHROME_ACTIONS.find((action) => action.id === id).none, "info");
+}, "Couldn't run that action.");
+
+const RESET_WARNING =
+  "Run it again to delete all your shortcuts and imported links.";
+
 const TASKS = {
   "fetch-youtube-playlists": async () => {
     const { windowId, showToast, setImportedLinks } = state();
@@ -82,11 +92,23 @@ const TASKS = {
     state().resetImportedLinks();
     state().showToast("Removed imported links.");
   },
+  // Runs only when picked again while its warning is still showing
+  "reset-switch-data": async () => {
+    const { toast, showToast, resetSwitchData } = state();
+    if (toast?.message !== RESET_WARNING) {
+      return showToast(RESET_WARNING, "info");
+    }
+    await resetSwitchData();
+    showToast("Deleted all Switch data.");
+  },
 };
 
 export const runTask = attempt(
   (id) => TASKS[id](),
-  "Couldn't read the page. Reopen Switch on it and retry.",
+  (id) =>
+    id === "fetch-youtube-playlists"
+      ? "Couldn't read the page. Reopen Switch on it and retry."
+      : "Couldn't run that task.",
 );
 
 export const copyText = attempt(async (text) => {

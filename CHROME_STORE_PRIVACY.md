@@ -4,7 +4,7 @@
 
 Pulse makes every new tab a quick start point: it replaces the Chrome new tab page with one daily refreshed learning card (a word, a tech read or a keyboard shortcut) and includes Switch, a keyboard launcher for getting to the sites and tabs the user wants next.
 
-Switch lets the user assign a letter to a site and jump there with one key, search web app pages, browser pages and open tabs, and sort or cycle through tabs in the current window. It opens over the Pulse new tab, from the toolbar button, or with its keyboard shortcut. The extension does not provide ad blocking, shopping features, or background access to the content of arbitrary websites.
+Switch lets the user assign a letter to a site and jump there with one key, search web app pages, browser pages and open tabs, sort or cycle through tabs in the current window, and run Chrome's own tab and window actions (such as pin, mute, duplicate or open in Incognito) on the tab it was opened on. It opens over the Pulse new tab, from the toolbar button, or with its keyboard shortcut. The extension does not provide ad blocking, shopping features, or background access to the content of arbitrary websites.
 
 ## 2. Permission justification
 

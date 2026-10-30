@@ -245,14 +245,15 @@ const TOAST_ICONS = {
 };
 
 export const Toast = () => {
-  const { toast, hideToast } = useSwitchStore();
+  const { toast, hideToast, view } = useSwitchStore();
   if (!toast) return null;
 
-  // Sits above the footer and the Shortcuts view's detail bar
+  // Sits just above the footer, and the Shortcuts view's detail bar there
+  const bottom = view === "shortcuts" ? "bottom-[108px]" : "bottom-[46px]";
   return (
     <div
       role="status"
-      className="absolute bottom-[108px] left-1/2 z-10 flex max-w-[80%] -translate-x-1/2 items-center gap-2.5 rounded-[10px] border border-sw-border bg-sw-raised py-2 pr-2.5 pl-3 text-[14px] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.6)]"
+      className={`absolute ${bottom} left-1/2 z-10 flex max-w-[80%] -translate-x-1/2 items-center gap-2.5 rounded-[10px] border border-sw-border bg-sw-raised py-2 pr-2.5 pl-3 text-[14px] shadow-[0_12px_30px_-10px_rgb(0_0_0/0.6)]`}
     >
       {TOAST_ICONS[toast.type]}
       <span className="min-w-0">{toast.message}</span>

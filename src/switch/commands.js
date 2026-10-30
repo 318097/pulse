@@ -1,5 +1,5 @@
-// What Switch runs on the browser's tabs: the keyboard commands (sort, cycle)
-// and the YouTube playlist import
+// What Switch runs on the browser's tabs: the keyboard commands (sort, cycle),
+// Chrome's own tab and window actions, and the YouTube playlist import
 import { getSite, isUrlMatch, normalizeUrl } from "../utils/url";
 import { getActiveTab, getWindowTabs, tabAction } from "../utils/tabs";
 
@@ -49,6 +49,38 @@ export const TAB_COMMANDS = {
         ({ favorite, url }) => favorite && isUrlMatch(tab.url, url),
       ),
     ),
+};
+
+const onActiveTab = (action) => async (windowId) =>
+  action(await getActiveTab(windowId));
+
+// The Chrome section's actions (CHROME_ACTIONS), on the tab Switch was opened on
+// or its window. One resolves to false when that tab can't take it.
+export const CHROME_COMMANDS = {
+  "new-window": () => chrome.windows.create({}),
+  "new-incognito-window": () => chrome.windows.create({ incognito: true }),
+  "open-in-incognito": onActiveTab(async (tab) => {
+    if (!/^https?:\/\//.test(tab?.url || "")) return false;
+    await chrome.windows.create({ incognito: true, url: tab.url });
+  }),
+  "duplicate-tab": onActiveTab((tab) =>
+    tabAction("duplicate", { tabId: tab.id }),
+  ),
+  "toggle-pin-tab": onActiveTab((tab) =>
+    tabAction("pin", { tabId: tab.id, pinned: !tab.pinned }),
+  ),
+  "toggle-mute-tab": onActiveTab((tab) =>
+    tabAction("mute", { tabId: tab.id, muted: !tab.mutedInfo?.muted }),
+  ),
+  "move-tab-to-new-window": onActiveTab((tab) =>
+    tabAction("detach", { tabId: tab.id }),
+  ),
+  "toggle-full-screen": async (windowId = chrome.windows.WINDOW_ID_CURRENT) => {
+    const { state } = await chrome.windows.get(windowId);
+    await chrome.windows.update(windowId, {
+      state: state === "fullscreen" ? "normal" : "fullscreen",
+    });
+  },
 };
 
 // Runs inside the YouTube page (via chrome.scripting), so it must be self-contained.
