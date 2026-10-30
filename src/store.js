@@ -1,9 +1,6 @@
 import { create } from "zustand";
-import {
-  DEFAULT_ENTITIES_KEY,
-  DEFAULT_ACTIVE_ENTITY_KEY,
-  saveDataToStorage,
-} from "./config";
+import { DEFAULT_ENTITIES_KEY, DEFAULT_ACTIVE_ENTITY_KEY } from "./config";
+import { saveDataToStorage } from "./utils/storage";
 
 const useStore = create((set) => ({
   showSettingsDialog: false,
@@ -30,6 +27,9 @@ const useStore = create((set) => ({
   },
   toggleSettingsDialog: () =>
     set((state) => ({ showSettingsDialog: !state.showSettingsDialog })),
+  showSwitch: false,
+  setShowSwitch: (showSwitch) => set({ showSwitch }),
+  toggleSwitch: () => set((state) => ({ showSwitch: !state.showSwitch })),
 }));
 
 export default useStore;

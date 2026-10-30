@@ -4,7 +4,10 @@
   "version": "1.9.0",
   "description": "A minimal new tab that refreshes daily with curated content—so every open feels new.",
   "permissions": [
-    "storage"
+    "storage",
+    "tabs",
+    "activeTab",
+    "scripting"
   ],
   "background": {
     "service_worker": "background.js",
@@ -22,7 +25,34 @@
       "48": "images/icon-48.png",
       "128": "images/icon-128.png"
     },
-    "default_title": "Pulse New Tab"
+    "default_title": "Switch",
+    "default_popup": "switch.html"
+  },
+  "commands": {
+    "toggle-quick-switch": {
+      "suggested_key": {
+        "default": "Alt+J"
+      },
+      "description": "Open Switch"
+    },
+    "sort-tabs": {
+      "suggested_key": {
+        "default": "Alt+Shift+J"
+      },
+      "description": "Sort tabs by site, then URL"
+    },
+    "cycle-same-domain-tabs": {
+      "suggested_key": {
+        "default": "Alt+Shift+K"
+      },
+      "description": "Cycle between tabs on the same site"
+    },
+    "cycle-favorite-tabs": {
+      "suggested_key": {
+        "default": "Alt+K"
+      },
+      "description": "Cycle between tabs of favorite shortcuts"
+    }
   },
   "icons": {
     "16": "images/icon-16.png",

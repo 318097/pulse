@@ -17,6 +17,7 @@ export const APP_CONFIG = {
 
 export const DEFAULT_ENTITIES_KEY = "pulse:entities";
 export const DEFAULT_ACTIVE_ENTITY_KEY = "pulse:activeEntity";
+export const SWITCH_KEY = "pulse:switch";
 
 const ONE_MIN = 60; // 1 minute in seconds
 const ONE_HR = 60 * 60; // 1 hour in seconds
@@ -36,33 +37,6 @@ const defaultConfig = {
 };
 
 export const KEYS_TO_SKIP = ["db", "history", "enabled"]; // these keys are not overridden when updating an entity with new data from the API
-
-export const getDataFromStorage = (
-  defaultValues,
-  cb,
-  key = DEFAULT_ENTITIES_KEY,
-) => {
-  const storage = typeof chrome !== "undefined" ? chrome.storage?.local : null;
-  storage.get([key], (result) => {
-    const appData = result?.[key];
-    const parsedData =
-      typeof appData === "object" ? appData : JSON.parse(appData || "null");
-
-    try {
-      cb(parsedData ?? defaultValues);
-    } catch (error) {
-      console.error("Invalid stored entity config:", error);
-      cb(defaultValues);
-    }
-  });
-};
-
-export const saveDataToStorage = (data, key = DEFAULT_ENTITIES_KEY) => {
-  const storage = typeof chrome !== "undefined" ? chrome.storage?.local : null;
-  if (storage && data != null) {
-    storage.set({ [key]: JSON.stringify(data) });
-  }
-};
 
 export const buildDefaultEntities = () => [
   {

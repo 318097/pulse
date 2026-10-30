@@ -1,0 +1,394 @@
+/* Switch design tokens and components, imported by tailwind.css.
+   Tokens are Tailwind theme values, so they work as utilities too (text-sw-muted,
+   bg-sw-raised, font-sw-mono). Colors are fixed rather than following Mantine's
+   color scheme: the panel is dark in the toolbar popup and on Pulse's dark new tab. */
+@theme {
+  --color-sw-surface: #232428;
+  --color-sw-sunken: #1d1e22;
+  --color-sw-raised: #2a2b30;
+  --color-sw-key: #2c2e33;
+  --color-sw-edge: #3a3c42;
+  --color-sw-shadow: #17181c;
+  --color-sw-border: #33353a;
+  --color-sw-divider: #2b2d32;
+  --color-sw-hover: rgb(255 255 255 / 0.04);
+  --color-sw-text: #eceef1;
+  --color-sw-muted: #a6a7ab;
+  --color-sw-faint: #6b6e76;
+  --color-sw-accent: #228be6;
+  --color-sw-accent-strong: #1c7ed6;
+  --color-sw-accent-soft: #74c0fc;
+  --color-sw-selected: rgb(34 139 230 / 0.2);
+  --color-sw-star: #fcc419;
+  --color-sw-danger: #ff8787;
+  --font-sw-mono: "Geist Mono", ui-monospace, monospace;
+}
+
+@layer components {
+  .sw-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 740px;
+    height: 450px;
+    overflow: hidden;
+    color: var(--color-sw-text);
+    background: linear-gradient(180deg, #26272c, var(--color-sw-surface) 40%);
+    font-family: "Geist Sans", system-ui, sans-serif;
+  }
+
+  .sw-panel-modal {
+    border: 1px solid var(--color-sw-border);
+    border-radius: 12px;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 24px 60px -20px rgb(74 111 209 / 0.35);
+  }
+
+  .sw-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 12px;
+    height: 56px;
+    padding: 0 14px 0 16px;
+    border-bottom: 1px solid var(--color-sw-divider);
+  }
+
+  /* The search view underlines its input */
+  .sw-header[data-active] {
+    border-bottom-color: var(--color-sw-accent-strong);
+  }
+
+  .sw-footer {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 16px;
+    height: 36px;
+    padding: 0 14px;
+    border-top: 1px solid var(--color-sw-divider);
+    background: var(--color-sw-sunken);
+    color: var(--color-sw-muted);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  /* Selectable list rows: search results and a shortcut's open tabs */
+  .sw-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    margin: 0 6px;
+    padding: 5px 12px 5px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    scroll-margin: 32px 0;
+
+    &:hover {
+      background: var(--color-sw-hover);
+    }
+    &[data-selected] {
+      background: var(--color-sw-selected);
+    }
+  }
+
+  .sw-row-number {
+    width: 22px;
+    flex-shrink: 0;
+    text-align: center;
+    color: var(--color-sw-faint);
+    font: 11px var(--font-sw-mono);
+
+    [data-selected] > & {
+      color: var(--color-sw-accent-soft);
+      font-weight: 700;
+    }
+  }
+
+  .sw-row-title,
+  .sw-row-subtitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sw-row-title {
+    font-size: 15px;
+    line-height: 1.3;
+  }
+
+  .sw-row-subtitle {
+    color: var(--color-sw-muted);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+
+  /* A group's destinations hang off a rail aligned with the group's title */
+  .sw-row[data-child] {
+    min-height: 34px;
+    margin-left: 48px;
+    padding-left: 14px;
+    border-radius: 0 8px 8px 0;
+    box-shadow: inset 2px 0 0 var(--color-sw-edge);
+
+    &[data-selected] {
+      box-shadow: inset 2px 0 0 var(--color-sw-accent);
+    }
+    .sw-row-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .sw-row-subtitle {
+      color: var(--color-sw-faint);
+      font-size: 13px;
+    }
+  }
+
+  /* Small keycaps: hints, command keys, shortcut letters */
+  .sw-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border: 1px solid var(--color-sw-edge);
+    border-bottom: 2px solid var(--color-sw-shadow);
+    border-radius: 4px;
+    background: var(--color-sw-key);
+    color: #c1c2c5;
+    font: 500 11px/1 var(--font-sw-mono);
+
+    &[data-accent] {
+      border-color: var(--color-sw-accent-strong);
+      background: var(--color-sw-accent);
+      color: white;
+    }
+  }
+
+  /* Large keycaps: the detail bar, shortcut details and the form's preview */
+  .sw-keycap {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid var(--color-sw-edge);
+    border-bottom: 4px solid var(--color-sw-shadow);
+    border-radius: 12px;
+    background: var(--color-sw-key);
+    font-family: var(--font-sw-mono);
+    font-weight: 700;
+
+    &[data-accent] {
+      border-color: var(--color-sw-accent-strong);
+      background: var(--color-sw-accent);
+    }
+  }
+
+  /* The on-screen keyboard */
+  .sw-key {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 62px;
+    height: 62px;
+    padding: 7px 8px 8px;
+    border: 1px solid var(--color-sw-divider);
+    border-radius: 9px;
+    color: #4a4c53;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background 0.1s,
+      box-shadow 0.1s;
+
+    &:hover {
+      border-style: dashed;
+      border-color: var(--color-sw-edge);
+    }
+    &[data-assigned] {
+      border: 1px solid var(--color-sw-edge);
+      border-bottom: 3px solid var(--color-sw-shadow);
+      background: var(--color-sw-key);
+      color: var(--color-sw-text);
+    }
+    &[data-selected] {
+      box-shadow:
+        0 0 0 2px var(--color-sw-accent-strong),
+        0 0 14px rgb(34 139 230 / 0.35);
+    }
+    &[data-pressed] {
+      border-color: var(--color-sw-accent-strong);
+      border-bottom-color: #1864ab;
+      background: var(--color-sw-accent);
+      box-shadow: 0 0 0 3px rgb(34 139 230 / 0.3);
+    }
+  }
+
+  .sw-key-name {
+    overflow: hidden;
+    color: var(--color-sw-muted);
+    font-size: 12px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    [data-pressed] > & {
+      color: white;
+    }
+  }
+
+  .sw-new-key {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 62px;
+    border: 1px solid var(--color-sw-edge);
+    border-bottom: 3px solid var(--color-sw-shadow);
+    border-radius: 9px;
+    background: var(--color-sw-key);
+    color: var(--color-sw-accent-soft);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover,
+    &[data-highlight] {
+      border-color: var(--color-sw-accent-strong);
+      background: rgb(34 139 230 / 0.16);
+    }
+  }
+
+  /* Open-tab count on a key (Mantine Indicator) */
+  .sw-key-badge {
+    border: 2px solid var(--color-sw-surface);
+    font: 700 10.5px var(--font-sw-mono);
+  }
+
+  /* Mantine components restyled to the panel. Mantine sets its color variables
+     inline, so these set the properties themselves. */
+  .sw-input {
+    border-color: var(--color-sw-edge);
+    background: var(--color-sw-raised);
+    color: var(--color-sw-text);
+    font-size: 15px;
+
+    &::placeholder {
+      color: var(--color-sw-faint);
+    }
+    &:focus {
+      border-color: var(--color-sw-accent-strong);
+    }
+    &[data-error] {
+      border-color: #e03131;
+      color: var(--color-sw-text);
+    }
+  }
+
+  .sw-input-label {
+    margin-bottom: 6px;
+    color: var(--color-sw-text);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .sw-input-description,
+  .sw-input-error {
+    margin-top: 6px;
+    color: var(--color-sw-faint);
+    font-size: 13px;
+  }
+
+  .sw-input-error {
+    color: var(--color-sw-danger);
+  }
+
+  .sw-button {
+    border: 1px solid var(--color-sw-edge);
+    background: var(--color-sw-raised);
+    color: var(--color-sw-text);
+    font-weight: 500;
+
+    &:hover {
+      background: #313238;
+    }
+    &[data-danger] {
+      color: var(--color-sw-danger);
+    }
+    &[data-primary] {
+      border-color: transparent;
+      background: var(--color-sw-accent);
+      color: white;
+
+      &:hover {
+        background: var(--color-sw-accent-strong);
+      }
+      .sw-kbd {
+        border-color: transparent;
+        background: rgb(255 255 255 / 0.2);
+        color: white;
+      }
+    }
+    &:disabled,
+    &:disabled:hover {
+      border-color: var(--color-sw-edge);
+      background: var(--color-sw-raised);
+      color: var(--color-sw-faint);
+
+      .sw-kbd {
+        background: var(--color-sw-key);
+        color: var(--color-sw-faint);
+      }
+    }
+  }
+
+  .sw-icon-button {
+    border: 1px solid var(--color-sw-edge);
+    background: transparent;
+  }
+
+  .sw-icon-button,
+  .sw-close-button {
+    color: var(--color-sw-muted);
+
+    &:hover {
+      background: var(--color-sw-hover);
+      color: var(--color-sw-text);
+    }
+  }
+
+  .sw-segmented {
+    padding: 3px;
+    border-radius: 9px;
+    background: #141517;
+  }
+
+  .sw-segmented-indicator {
+    border-radius: 7px;
+    background: var(--color-sw-key);
+    box-shadow: none;
+  }
+
+  .sw-segmented-label {
+    padding: 4px 12px;
+    color: var(--color-sw-muted);
+    font-size: 14px;
+    font-weight: 500;
+
+    &[data-active] {
+      color: var(--color-sw-text);
+    }
+  }
+
+  .sw-popover {
+    border: 1px solid var(--color-sw-border);
+    background: var(--color-sw-raised);
+    color: var(--color-sw-text);
+  }
+}
