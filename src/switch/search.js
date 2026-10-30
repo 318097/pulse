@@ -8,12 +8,14 @@ const IDLE_GLOBALS_LIMIT = 5;
 const KEYBINDINGS_LIMIT = 6;
 
 // Navigation rows show the short URL ("youtube.com/feed/history"); Global rows
-// show it in full, since many are chrome:// or .new links
+// show it in full, since many are chrome:// or .new links. A link's `tag` (like
+// "playlist") is shown before its URL.
 const linkRow = (link, title = link.title, shortUrl = false) => ({
   key: link.id,
   type: "link",
   title,
   subtitle: shortUrl ? displayUrl(link.url) : link.url,
+  tag: link.tag,
   url: link.url,
 });
 
@@ -22,6 +24,7 @@ const taskRow = (task, title = task.title) => ({
   type: "task",
   title,
   subtitle: task.description,
+  tag: "task",
   taskId: task.id,
 });
 
@@ -44,7 +47,13 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
           ),
         )
         .map((child) =>
-          linkRow(child, `${group.label} › ${child.title}`, true),
+          linkRow(
+            child,
+            [group.label, child.nested && child.l1Label, child.title]
+              .filter(Boolean)
+              .join(" › "),
+            true,
+          ),
         );
       const taskRows = tasks
         .filter((task) =>
@@ -69,9 +78,13 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
       groupId: group.id,
       expanded,
     };
+    // Every imported link is listed, indented under its destination
     const children = expanded
       ? [
-          ...group.children.map((child) => linkRow(child, child.title, true)),
+          ...group.children.map((child) => ({
+            ...linkRow(child, child.title, true),
+            nested: child.nested,
+          })),
           ...tasks.map((task) => taskRow(task)),
         ].map((row) => ({ ...row, child: true, groupId: group.id }))
       : [];

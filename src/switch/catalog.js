@@ -48,12 +48,14 @@ export const TASKS = [
   },
 ];
 
-// Config every scraped playlist is saved with; it joins the YouTube group
+// Config every scraped playlist is saved with; it joins the YouTube group, under
+// its Playlists destination
 export const YOUTUBE_PLAYLISTS = {
   source: "youtube:playlists",
   appName: "youtube",
   l1Label: "Playlists",
   l1: ["p", "playlists"],
+  tag: "playlist",
 };
 
 const WEBAPPS = [
@@ -255,15 +257,26 @@ export const GLOBALS = [
   url,
 }));
 
-// Web app groups, with imported links (e.g. scraped playlists) added to their app's group
+// Web app groups, with imported links (e.g. scraped playlists) added to their app's
+// group: nested under the destination their `l1Label` names, else at the end
 export const getWebappGroups = (urlList = []) =>
   WEBAPP_GROUPS.map((group) => {
     const imported = urlList
       .filter((link) => link.appName === group.appName)
       .map((link) => ({ ...link, id: `imported:${link.url}` }));
-    return imported.length
-      ? { ...group, children: [...group.children, ...imported] }
-      : group;
+    if (!imported.length) return group;
+
+    const isUnder = (link, child) => link.l1Label === child.title;
+    const children = group.children.flatMap((child) => [
+      child,
+      ...imported
+        .filter((link) => isUnder(link, child))
+        .map((link) => ({ ...link, nested: true })),
+    ]);
+    const rest = imported.filter(
+      (link) => !group.children.some((child) => isUnder(link, child)),
+    );
+    return { ...group, children: [...children, ...rest] };
   });
 
 // Every keyboard shortcut card Pulse has shown, from the rows its API returns

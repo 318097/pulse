@@ -146,6 +146,27 @@
     }
   }
 
+  /* Imported links (like playlists) hang off their destination on a second rail,
+     one level deeper, with the group's rail running on past them */
+  .sw-row[data-child][data-nested] {
+    position: relative;
+    padding-left: 38px;
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 24px;
+      width: 2px;
+      background: var(--color-sw-edge);
+    }
+    &[data-selected] {
+      box-shadow: inset 2px 0 0 var(--color-sw-edge);
+    }
+    &[data-selected]::before {
+      background: var(--color-sw-accent);
+    }
+  }
+
   /* Small keycaps: hints, command keys, shortcut letters */
   .sw-kbd {
     display: inline-flex;

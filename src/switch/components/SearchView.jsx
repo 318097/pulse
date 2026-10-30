@@ -179,6 +179,7 @@ export default function SearchView({ onClose }) {
                     }}
                     number={row.number}
                     child={row.child}
+                    nested={row.nested}
                     title={<Highlight text={row.title} tokens={tokens} />}
                     subtitle={<RowSubtitle row={row} />}
                     selected={row === selected}

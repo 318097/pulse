@@ -197,9 +197,10 @@ export const SectionTitle = ({ title, count }) => (
 );
 
 // A selectable list row: number, title and subtitle, then whatever goes on the
-// right. `child` rows hang off a group and have no number.
+// right. `child` rows hang off a group and have no number; `nested` child rows
+// sit one level deeper, under another child.
 export const Row = forwardRef(function Row(
-  { number, title, subtitle, selected, child, right, onClick },
+  { number, title, subtitle, selected, child, nested, right, onClick },
   ref,
 ) {
   return (
@@ -209,6 +210,7 @@ export const Row = forwardRef(function Row(
       aria-selected={!!selected}
       data-selected={selected || undefined}
       data-child={child || undefined}
+      data-nested={nested || undefined}
       className="sw-row"
       onClick={onClick}
     >
