@@ -1,10 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollArea, TextInput } from "@mantine/core";
-import {
-  CaretDownIcon,
-  CaretRightIcon,
-  StarIcon,
-} from "@phosphor-icons/react";
+import { CaretDownIcon, CaretRightIcon, StarIcon } from "@phosphor-icons/react";
 import { useShallow } from "zustand/react/shallow";
 import useSwitchStore from "../store";
 import { buildSearchResults } from "../search";
@@ -27,6 +23,7 @@ import {
   SectionTitle,
   View,
 } from "./common";
+import SectionFilter from "./SectionFilter";
 
 const ENTER_LABELS = {
   group: "expand",
@@ -100,6 +97,7 @@ export default function SearchView({ onClose }) {
         urlList,
         usage,
         favorites,
+        sectionVisibility,
         tabs,
         currentTab,
         keybindings,
@@ -108,6 +106,7 @@ export default function SearchView({ onClose }) {
         urlList,
         usage,
         favorites,
+        sectionVisibility,
         tabs,
         currentTab,
         keybindings,
@@ -120,6 +119,7 @@ export default function SearchView({ onClose }) {
   const [shownSections, setShownSections] = useState([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const rowRefs = useRef([]);
+  const inputRef = useRef(null);
 
   const { sections, rows, tokens } = useMemo(
     () =>
@@ -193,6 +193,7 @@ export default function SearchView({ onClose }) {
     <View keymap={keymap} autoFocus={false}>
       <HomeHeader view="search" active onClose={onClose}>
         <TextInput
+          ref={inputRef}
           className="flex-1"
           variant="unstyled"
           classNames={{
@@ -209,6 +210,7 @@ export default function SearchView({ onClose }) {
           spellCheck={false}
           aria-label="Search"
         />
+        <SectionFilter onClose={() => inputRef.current?.focus()} />
       </HomeHeader>
 
       <ScrollArea className="min-h-0 flex-1" type="hover" scrollbarSize={6}>
@@ -242,7 +244,9 @@ export default function SearchView({ onClose }) {
           ))}
           {!rows.length && (
             <div className="px-6 py-10 text-center text-[14px] text-sw-muted">
-              No matches for “{query.trim()}”. Press ↵ to search Google.
+              {query.trim()
+                ? `No matches for “${query.trim()}”. Press ↵ to search Google.`
+                : "Nothing to show. Turn sections back on from the filter."}
             </div>
           )}
         </div>

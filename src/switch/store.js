@@ -9,6 +9,7 @@ import {
 import { getCommandKeys } from "../utils/keys";
 import { getActiveTab, getWindowTabs } from "../utils/tabs";
 import { getKeybindings } from "./catalog";
+import { SECTIONS, isSectionVisible } from "./search";
 
 // Search and Shortcuts are the two home views; Switch reopens on the last one
 const HOME_VIEWS = ["search", "shortcuts"];
@@ -19,21 +20,30 @@ const pickSaved = ({
   urlList = [],
   usage = {},
   favorites = [],
+  sectionVisibility = {},
   lastView,
 } = {}) => ({
   shortcuts,
   urlList,
   usage,
   favorites,
+  sectionVisibility,
   lastView: HOME_VIEWS.includes(lastView) ? lastView : "search",
 });
 
 const useSwitchStore = create((set, get) => {
   const save = (update) => {
     set(update);
-    const { shortcuts, urlList, usage, favorites, lastView } = get();
+    const {
+      shortcuts,
+      urlList,
+      usage,
+      favorites,
+      sectionVisibility,
+      lastView,
+    } = get();
     saveDataToStorage(
-      { shortcuts, urlList, usage, favorites, lastView },
+      { shortcuts, urlList, usage, favorites, sectionVisibility, lastView },
       SWITCH_KEY,
     );
   };
@@ -42,11 +52,14 @@ const useSwitchStore = create((set, get) => {
     loaded: false,
     // Saved: shortcuts are { _id, name, url, hotkey, favorite, createdAt };
     // urlList holds imported links, like scraped YouTube playlists; usage maps a
-    // link's id to { count, lastUsed }; favorites are starred link ids
+    // link's id to { count, lastUsed }; favorites are starred link ids;
+    // sectionVisibility maps a search section's id to whether it's shown, once
+    // toggled (until then it follows the section's default)
     shortcuts: [],
     urlList: [],
     usage: {},
     favorites: [],
+    sectionVisibility: {},
     lastView: "search",
     // Context: commandKeys maps a command to its keys ([] when unassigned) and is
     // empty until read
@@ -155,10 +168,29 @@ const useSwitchStore = create((set, get) => {
       });
     },
 
+    toggleSection: (id) => {
+      const { sectionVisibility } = get();
+      save({
+        sectionVisibility: {
+          ...sectionVisibility,
+          [id]: !isSectionVisible(id, sectionVisibility),
+        },
+      });
+    },
+
+    showAllSections: () =>
+      save({
+        sectionVisibility: Object.fromEntries(
+          SECTIONS.filter(({ filterable, soon }) => filterable && !soon).map(
+            ({ id }) => [id, true],
+          ),
+        ),
+      }),
+
     // Deletes everything Switch saved (shortcuts, imported links, usage,
-    // favorites, last view), then loads afresh: unmounting the view drops its
-    // query and expanded sections too. Other open panels clear theirs through
-    // syncSwitch.
+    // favorites, section filters, last view), then loads afresh: unmounting the
+    // view drops its query and expanded sections too. Other open panels clear
+    // theirs through syncSwitch.
     resetSwitchData: async () => {
       await removeFromStorage(SWITCH_KEY);
       set({ loaded: false, params: {} });
@@ -188,12 +220,12 @@ export const syncSwitch = () => {
     if (area !== "local") return;
     // A removed key (Reset Switch data) reads as nothing saved
     const switchChange = changes[SWITCH_KEY];
-    const saved =
-      switchChange && parseStored(switchChange.newValue ?? "{}");
+    const saved = switchChange && parseStored(switchChange.newValue ?? "{}");
     const entities = parseStored(changes[DEFAULT_ENTITIES_KEY]?.newValue);
     if (saved) {
-      const { shortcuts, urlList, usage, favorites } = pickSaved(saved);
-      setState({ shortcuts, urlList, usage, favorites });
+      const { shortcuts, urlList, usage, favorites, sectionVisibility } =
+        pickSaved(saved);
+      setState({ shortcuts, urlList, usage, favorites, sectionVisibility });
     }
     if (entities) setState({ keybindings: getKeybindings(entities) });
   };

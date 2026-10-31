@@ -435,4 +435,73 @@
     background: var(--color-sw-raised);
     color: var(--color-sw-text);
   }
+
+  /* The search header's section filter; tinted while it hides any section */
+  .sw-filter-button {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--color-sw-edge);
+    border-radius: 7px;
+    color: var(--color-sw-muted);
+
+    &:hover,
+    &[aria-expanded="true"] {
+      background: var(--color-sw-hover);
+      color: var(--color-sw-text);
+    }
+    &[data-filtered] {
+      border-color: var(--color-sw-accent-strong);
+      background: rgb(34 139 230 / 0.12);
+      color: var(--color-sw-accent-soft);
+    }
+  }
+
+  .sw-filter {
+    padding: 0 0 2px;
+    border-radius: 10px;
+    background: var(--color-sw-surface);
+  }
+
+  .sw-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 4px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-sw-hover);
+    }
+    &[data-disabled] {
+      color: var(--color-sw-faint);
+      cursor: default;
+
+      &:hover {
+        background: none;
+      }
+    }
+  }
+
+  .sw-checkbox {
+    border-color: var(--color-sw-edge);
+    background: transparent;
+    cursor: pointer;
+
+    &:checked {
+      border-color: var(--color-sw-accent);
+      background: var(--color-sw-accent);
+    }
+    &:disabled {
+      border-color: var(--color-sw-divider);
+      background: transparent;
+      cursor: default;
+    }
+  }
 }

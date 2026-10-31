@@ -13,6 +13,51 @@ import {
 import { matchesAll, pluralize, tokenize } from "../utils/text";
 import { displayUrl } from "../utils/url";
 
+// The Search view's sections, in the order the results and the filter list them.
+// `visible` is whether a section shows until it's toggled; `filterable: false`
+// sections aren't in the filter and always show. `when` limits a section to idle
+// ("idle") or to a query ("search"). Soon sources are listed in the filter but
+// can't be turned on yet.
+export const SECTIONS = [
+  {
+    id: "recent",
+    label: "Recently used",
+    visible: true,
+    filterable: false,
+    when: "idle",
+  },
+  {
+    id: "favorites",
+    label: "Favorites",
+    visible: true,
+    filterable: false,
+    when: "idle",
+  },
+  {
+    id: "keybindings",
+    label: "Shortcuts",
+    visible: true,
+    filterable: false,
+    when: "search",
+  },
+  { id: "commands", label: "Commands", visible: true, filterable: true },
+  { id: "navigation", label: "Navigation", visible: true, filterable: true },
+  { id: "global", label: "Global", visible: true, filterable: true },
+  { id: "chrome", label: "Chrome", visible: true, filterable: true },
+  { id: "tabs", label: "Open tabs", visible: true, filterable: true },
+  { id: "tasks", label: "Tasks", visible: true, filterable: true },
+  // { id: "bookmarks", label: "Bookmarks", visible: false, filterable: true, soon: true },
+];
+
+// A filterable section's saved choice, else its default
+export const isSectionVisible = (id, sectionVisibility = {}) => {
+  const section = SECTIONS.find((s) => s.id === id);
+  if (!section) return false;
+  if (section.soon) return false;
+  if (!section.filterable) return section.visible;
+  return sectionVisibility[id] ?? section.visible;
+};
+
 const IDLE_SECTION_LIMIT = 5;
 const RECENT_LIMIT = 5;
 const KEYBINDINGS_LIMIT = 6;
@@ -58,8 +103,7 @@ const destinationTitle = (group, child) =>
 
 // Most recently used first. Never-used items have time 0, so they keep their
 // catalog order (sort is stable).
-const byRecency = (items, time) =>
-  [...items].sort((a, b) => time(b) - time(a));
+const byRecency = (items, time) => [...items].sort((a, b) => time(b) - time(a));
 
 // A group's destinations by recency, each still followed by its imported links
 // (also by recency); a group's time is its latest use of any of them
@@ -205,6 +249,7 @@ export const buildSearchResults = ({
   shownSections,
   usage,
   favorites,
+  sectionVisibility = {},
 }) => {
   const tokens = tokenize(query);
   const searching = tokens.length > 0;
@@ -274,43 +319,40 @@ export const buildSearchResults = ({
     .map((t) => taskRow(t));
 
   // Counted in full, though idle they show only their first rows
-  const limited = (id, title, rows) => [
-    id,
-    title,
-    limitRows(id, rows, searching, shownSections),
-    rows.length,
-  ];
-  const global = limited(
-    "global",
-    "Global",
-    byRecency(GLOBALS, linkTime)
-      .filter((link) => matchesAll(tokens, link.title, link.url))
-      .map((link) => linkRow(link)),
-  );
-  const chrome = limited(
-    "chrome",
-    "Chrome",
-    chromeRows(tokens, currentTab, linkTime),
-  );
-  const openTabs = ["tabs", "Open tabs", tabRows];
-  // Idle leads with recent and starred links, then lists what Switch can do; a
-  // query leads with the closest matches
-  const sections = [
-    !searching && ["recent", "Recently used", recent],
-    !searching && ["favorites", "Favorites", favoriteRows],
-    searching && ["keybindings", "Keyboard shortcuts", keybindingRows],
-    ["commands", "Commands", commands],
-    ["navigation", "Navigation", navigation, searching ? null : groups.length],
-    ...(searching ? [openTabs, global, chrome] : [global, chrome, openTabs]),
-    ["tasks", "Tasks", taskRows],
-  ]
-    .filter((s) => s && s[2].length)
-    .map(([id, title, rows, count]) => ({
-      id,
-      title,
-      rows,
-      count: count ?? rows.length,
-    }));
+  const limited = (id, rows) => ({
+    rows: limitRows(id, rows, searching, shownSections),
+    count: rows.length,
+  });
+  const content = {
+    recent: { rows: recent },
+    favorites: { rows: favoriteRows },
+    keybindings: { rows: keybindingRows },
+    commands: { rows: commands },
+    navigation: {
+      rows: navigation,
+      count: searching ? undefined : groups.length,
+    },
+    global: limited(
+      "global",
+      byRecency(GLOBALS, linkTime)
+        .filter((link) => matchesAll(tokens, link.title, link.url))
+        .map((link) => linkRow(link)),
+    ),
+    chrome: limited("chrome", chromeRows(tokens, currentTab, linkTime)),
+    tabs: { rows: tabRows },
+    tasks: { rows: taskRows },
+  };
+  // Idle leads with recent and starred links, a query with shortcuts;
+  // then what Switch can do
+  const sections = SECTIONS.filter(
+    ({ id, when }) =>
+      content[id] &&
+      (!when || when === (searching ? "search" : "idle")) &&
+      isSectionVisible(id, sectionVisibility),
+  )
+    .map(({ id, label }) => ({ id, title: label, ...content[id] }))
+    .filter((s) => s.rows.length)
+    .map((s) => ({ ...s, count: s.count ?? s.rows.length }));
 
   let number = 0;
   sections.forEach(({ rows }) =>
