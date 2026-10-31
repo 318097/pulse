@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Modal } from "@mantine/core";
+import { useHotkeys } from "@mantine/hooks";
 import useStore from "../store";
 import useSwitchStore, { syncSwitch } from "./store";
 import SwitchPanel from "./SwitchPanel";
@@ -57,22 +58,20 @@ export default function SwitchModal() {
   }, [toggleSwitch]);
 
   // With no toggle key assigned, Chrome hands Alt/Option+J to the page (unless
-  // another extension owns it), so catch it here. event.code, because Option+J
-  // types "∆" on macOS.
-  const toggleUnassigned = toggleKeys?.length === 0;
-  useEffect(() => {
-    if (!toggleUnassigned) return undefined;
-
-    const handleKeyDown = (event) => {
-      const onlyAlt =
-        event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
-      if (!onlyAlt || event.code !== "KeyJ") return;
-      event.preventDefault();
-      toggleSwitch();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleUnassigned, toggleSwitch]);
+  // another extension owns it), so catch it here. Physical keys, because
+  // Option+J types "∆" on macOS.
+  useHotkeys(
+    toggleKeys?.length === 0
+      ? [
+          [
+            "alt+J",
+            toggleSwitch,
+            { preventDefault: true, usePhysicalKeys: true },
+          ],
+        ]
+      : [],
+    [],
+  );
 
   const close = () => setShowSwitch(false);
 

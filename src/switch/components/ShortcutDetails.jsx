@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, Group, Popover, ScrollArea, Text } from "@mantine/core";
+import clamp from "lodash/clamp";
 import useSwitchStore from "../store";
 import { openLink, switchToTab } from "../actions";
 import { displayUrl } from "../../utils/url";
@@ -92,12 +93,12 @@ export default function ShortcutDetails({ onClose }) {
     goBack();
   };
 
+  const select = (idx) => setSelectedIdx(clamp(idx, 0, matchedTabs.length - 1));
+
   const keymap = {
     Escape: goBack,
-    ArrowDown: onView(() =>
-      setSelectedIdx((idx) => Math.min(idx + 1, matchedTabs.length - 1)),
-    ),
-    ArrowUp: onView(() => setSelectedIdx((idx) => Math.max(idx - 1, 0))),
+    ArrowDown: onView(() => select(selectedIdx + 1)),
+    ArrowUp: onView(() => select(selectedIdx - 1)),
     Enter: onView(() => open(matchedTabs[selectedIdx])),
     e: onView(edit),
     E: onView(edit),

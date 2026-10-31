@@ -1,4 +1,4 @@
-import { capitalize } from "./text";
+import upperFirst from "lodash/upperFirst";
 
 const stripUrl = (url, scheme) =>
   url
@@ -46,7 +46,7 @@ export const withProtocol = (url) =>
 export const getSiteName = ({ title = "", url = "" } = {}) => {
   try {
     const parts = new URL(url).hostname.replace(/^www\./, "").split(".");
-    return capitalize(parts.at(parts.length > 1 ? -2 : 0));
+    return upperFirst(parts.at(parts.length > 1 ? -2 : 0));
   } catch {
     return title;
   }

@@ -8,6 +8,7 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import { useShallow } from "zustand/react/shallow";
+import clamp from "lodash/clamp";
 import useSwitchStore from "../store";
 import { findWebapp } from "../catalog";
 import { buildSearchResults } from "../search";
@@ -161,8 +162,7 @@ export default function SearchView({ onClose }) {
     [data, query, scope, expandedGroupId, shownSections],
   );
   const selected = rows[Math.min(selectedIdx, rows.length - 1)];
-  const select = (idx) =>
-    setSelectedIdx(Math.max(0, Math.min(idx, rows.length - 1)));
+  const select = (idx) => setSelectedIdx(clamp(idx, 0, rows.length - 1));
 
   useEffect(() => {
     rowRefs.current[selectedIdx]?.scrollIntoView({ block: "nearest" });

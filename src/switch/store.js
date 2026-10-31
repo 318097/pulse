@@ -1,4 +1,7 @@
 import { create } from "zustand";
+import omit from "lodash/omit";
+import pick from "lodash/pick";
+import xor from "lodash/xor";
 import { DEFAULT_ENTITIES_KEY, SWITCH_KEY } from "../config";
 import {
   parseStored,
@@ -14,6 +17,14 @@ import { SECTIONS, isSectionVisible } from "./search";
 // Search and Shortcuts are the two home views; Switch reopens on the last one
 const HOME_VIEWS = ["search", "shortcuts"];
 const TOAST_DURATION = 3000;
+const SAVED_KEYS = [
+  "shortcuts",
+  "urlList",
+  "usage",
+  "favorites",
+  "sectionVisibility",
+  "lastView",
+];
 
 const pickSaved = ({
   shortcuts = [],
@@ -34,18 +45,7 @@ const pickSaved = ({
 const useSwitchStore = create((set, get) => {
   const save = (update) => {
     set(update);
-    const {
-      shortcuts,
-      urlList,
-      usage,
-      favorites,
-      sectionVisibility,
-      lastView,
-    } = get();
-    saveDataToStorage(
-      { shortcuts, urlList, usage, favorites, sectionVisibility, lastView },
-      SWITCH_KEY,
-    );
+    saveDataToStorage(pick(get(), SAVED_KEYS), SWITCH_KEY);
   };
 
   return {
@@ -78,11 +78,11 @@ const useSwitchStore = create((set, get) => {
         readFromStorage(SWITCH_KEY, {}),
         readFromStorage(DEFAULT_ENTITIES_KEY, []),
       ]);
-      const saved = pickSaved(data || {});
+      const saved = pickSaved(data);
       set({
         ...saved,
         view: saved.lastView,
-        keybindings: getKeybindings(entities || []),
+        keybindings: getKeybindings(entities),
         windowId,
         loaded: true,
       });
@@ -159,14 +159,7 @@ const useSwitchStore = create((set, get) => {
       });
     },
 
-    toggleFavorite: (id) => {
-      const { favorites } = get();
-      save({
-        favorites: favorites.includes(id)
-          ? favorites.filter((favorite) => favorite !== id)
-          : [...favorites, id],
-      });
-    },
+    toggleFavorite: (id) => save({ favorites: xor(get().favorites, [id]) }),
 
     toggleSection: (id) => {
       const { sectionVisibility } = get();
@@ -222,11 +215,8 @@ export const syncSwitch = () => {
     const switchChange = changes[SWITCH_KEY];
     const saved = switchChange && parseStored(switchChange.newValue ?? "{}");
     const entities = parseStored(changes[DEFAULT_ENTITIES_KEY]?.newValue);
-    if (saved) {
-      const { shortcuts, urlList, usage, favorites, sectionVisibility } =
-        pickSaved(saved);
-      setState({ shortcuts, urlList, usage, favorites, sectionVisibility });
-    }
+    // The view stays where this panel is
+    if (saved) setState(omit(pickSaved(saved), "lastView"));
     if (entities) setState({ keybindings: getKeybindings(entities) });
   };
   const onShow = () => !document.hidden && getState().refreshCommandKeys();

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Button, Indicator } from "@mantine/core";
 import { PlusIcon } from "@phosphor-icons/react";
+import clamp from "lodash/clamp";
+import keyBy from "lodash/keyBy";
 import useSwitchStore from "../store";
 import { openLink } from "../actions";
 import { pluralize } from "../../utils/text";
@@ -102,10 +104,7 @@ const detailButton = { className: "sw-button", size: "sm", radius: "md" };
 
 export default function ShortcutsView({ onClose }) {
   const { shortcuts, tabs, commandKeys, params, setView } = useSwitchStore();
-  const byLetter = useMemo(
-    () => Object.fromEntries(shortcuts.map((s) => [s.hotkey, s])),
-    [shortcuts],
-  );
+  const byLetter = useMemo(() => keyBy(shortcuts, "hotkey"), [shortcuts]);
   // Start on the key just added, else the first assigned one
   const [selected, setSelected] = useState(() =>
     byLetter[params.hotkey]
@@ -137,9 +136,7 @@ export default function ShortcutsView({ onClose }) {
   const move = (key) => {
     if (key === "ArrowLeft" || key === "ArrowRight") {
       const idx = LETTERS.indexOf(selected) + (key === "ArrowLeft" ? -1 : 1);
-      return setSelected(
-        LETTERS[Math.max(0, Math.min(idx, LETTERS.length - 1))],
-      );
+      return setSelected(LETTERS[clamp(idx, 0, LETTERS.length - 1)]);
     }
     const rowIdx = KEYBOARD_ROWS.findIndex((row) => row.includes(selected));
     const nextRow = KEYBOARD_ROWS[rowIdx + (key === "ArrowDown" ? 1 : -1)];

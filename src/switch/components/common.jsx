@@ -1,5 +1,11 @@
 import { forwardRef, useEffect, useRef } from "react";
-import { ActionIcon, CloseButton, Kbd, SegmentedControl } from "@mantine/core";
+import {
+  ActionIcon,
+  CloseButton,
+  Highlight as MantineHighlight,
+  Kbd,
+  SegmentedControl,
+} from "@mantine/core";
 import {
   ArrowFatUpIcon,
   ArrowLeftIcon,
@@ -11,7 +17,6 @@ import {
   XIcon,
 } from "@phosphor-icons/react";
 import useSwitchStore from "../store";
-import { escapeRegExp } from "../../utils/text";
 
 // One panel screen. It takes focus on mount (unless an input inside autofocuses)
 // and maps keys to handlers, with `default` catching the rest; a handler that
@@ -99,23 +104,23 @@ export const Star = ({ size, className = "" }) => (
   />
 );
 
-// Marks each occurrence of a search token in the text
-export const Highlight = ({ text = "", tokens = [] }) => {
-  if (!tokens.length) return text;
-
-  const escaped = tokens.map(escapeRegExp);
-  return text
-    .split(new RegExp(`(${escaped.join("|")})`, "gi"))
-    .map((part, idx) =>
-      idx % 2 ? (
-        <span key={idx} className="font-semibold text-sw-accent-soft">
-          {part}
-        </span>
-      ) : (
-        part
-      ),
-    );
+const HIGHLIGHT_STYLES = {
+  background: "none",
+  color: "var(--color-sw-accent-soft)",
+  fontWeight: 600,
 };
+
+// Marks each occurrence of a search token in the text
+export const Highlight = ({ text = "", tokens = [] }) => (
+  <MantineHighlight
+    component="span"
+    inherit
+    highlight={tokens}
+    highlightStyles={HIGHLIGHT_STYLES}
+  >
+    {text}
+  </MantineHighlight>
+);
 
 const CloseIcon = ({ onClose }) =>
   onClose && (

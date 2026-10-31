@@ -8,8 +8,6 @@ import { TAB_COMMANDS } from "./commands";
 // Window chrome around the 740x450 panel when it opens as a standalone window
 const FALLBACK_WINDOW_SIZE = { width: 756, height: 490 };
 
-const getSavedData = async () => (await readFromStorage(SWITCH_KEY, {})) || {};
-
 // Opening the popup needs a focused browser window; when Chrome refuses, open
 // the same page in a small window instead
 const openPopup = (windowId) =>
@@ -49,6 +47,6 @@ const toggleSwitch = async (tab) => {
 
 chrome.commands.onCommand.addListener(async (command, tab) => {
   if (command === OPEN_SWITCH_COMMAND) return toggleSwitch(tab);
-  const { shortcuts } = await getSavedData();
+  const { shortcuts } = await readFromStorage(SWITCH_KEY, {});
   return TAB_COMMANDS[command]?.(tab?.windowId, shortcuts);
 });

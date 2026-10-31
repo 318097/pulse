@@ -56,8 +56,7 @@ export const SECTIONS = [
 // A filterable section's saved choice, else its default
 export const isSectionVisible = (id, sectionVisibility = {}) => {
   const section = SECTIONS.find((s) => s.id === id);
-  if (!section) return false;
-  if (section.soon) return false;
+  if (!section || section.soon) return false;
   if (!section.filterable) return section.visible;
   return sectionVisibility[id] ?? section.visible;
 };

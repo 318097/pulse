@@ -4,7 +4,7 @@
 // `l0` are an app's aliases and `l1` a section's, so search finds `yt watch` and
 // `yt p music`; `yt.` scopes the search to YouTube.
 
-import { capitalize } from "../utils/text";
+import upperFirst from "lodash/upperFirst";
 import { IS_MAC, parseKeyCombo } from "../utils/keys";
 import { getSite, googleSearchUrl } from "../utils/url";
 
@@ -548,7 +548,7 @@ export const getKeybindings = (entities = []) => {
       const id = title.toLowerCase();
       keybindings.set(id, {
         id: `keybinding:${id}`,
-        title: capitalize(title),
+        title: upperFirst(title),
         description,
         group,
         combo,

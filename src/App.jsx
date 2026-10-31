@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ActionIcon, Badge, useMantineColorScheme } from "@mantine/core";
+import { Badge } from "@mantine/core";
 import DynamicEntity from "./components/DynamicEntity";
 import Header from "./components/Header";
 import {
@@ -8,7 +8,6 @@ import {
   buildDefaultEntities,
 } from "./config";
 import { getDataFromStorage } from "./utils/storage";
-import { SunDimIcon, MoonIcon } from "@phosphor-icons/react";
 import useStore from "./store";
 import Settings from "./components/Settings";
 import SwitchModal from "./switch/SwitchModal";
@@ -41,7 +40,6 @@ const handleEntityUpdate = (entityId, data) => {
 };
 
 export default function App() {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const {
     setEntities,
     setActiveEntityIdx,
@@ -99,15 +97,6 @@ export default function App() {
           </p>
         )}
       </main>
-      {/* <div className="fixed bottom-4 right-4">
-        <ActionIcon
-          variant="subtle"
-          color="cyan"
-          onClick={() => toggleColorScheme()}
-        >
-          {colorScheme === "dark" ? <SunDimIcon /> : <MoonIcon />}
-        </ActionIcon>
-      </div> */}
       <Settings />
       <SwitchModal />
     </div>
