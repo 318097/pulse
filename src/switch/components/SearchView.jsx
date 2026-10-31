@@ -1,6 +1,10 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollArea, TextInput } from "@mantine/core";
-import { CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react";
+import {
+  CaretDownIcon,
+  CaretRightIcon,
+  StarIcon,
+} from "@phosphor-icons/react";
 import { useShallow } from "zustand/react/shallow";
 import useSwitchStore from "../store";
 import { buildSearchResults } from "../search";
@@ -33,13 +37,40 @@ const ENTER_LABELS = {
   keybinding: "copy keys",
 };
 
+// Stars a link; shown on hover or selection, and always once starred
+const FavoriteButton = ({ row }) => {
+  const toggleFavorite = useSwitchStore((state) => state.toggleFavorite);
+  const label = row.favorite ? "Remove from favorites" : "Add to favorites";
+
+  return (
+    <button
+      type="button"
+      className="sw-row-star"
+      data-on={row.favorite || undefined}
+      aria-label={label}
+      title={label}
+      // Keeps keyboard focus in the search box
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={(event) => {
+        event.stopPropagation();
+        toggleFavorite(row.linkId);
+      }}
+    >
+      <StarIcon size={15} weight={row.favorite ? "fill" : "regular"} />
+    </button>
+  );
+};
+
 const RowEnd = ({ row, selected }) => {
   if (row.type === "group") {
     const Caret = row.expanded ? CaretDownIcon : CaretRightIcon;
     return <Caret size={14} className="text-sw-faint" />;
   }
   return (
-    <Keys keys={row.keys} accent={selected && row.type === "keybinding"} />
+    <>
+      {row.linkId && <FavoriteButton row={row} />}
+      <Keys keys={row.keys} accent={selected && row.type === "keybinding"} />
+    </>
   );
 };
 
@@ -64,13 +95,25 @@ const RowSubtitle = ({ row }) =>
 export default function SearchView({ onClose }) {
   const setView = useSwitchStore((state) => state.setView);
   const data = useSwitchStore(
-    useShallow(({ urlList, tabs, currentTab, keybindings, commandKeys }) => ({
-      urlList,
-      tabs,
-      currentTab,
-      keybindings,
-      commandKeys,
-    })),
+    useShallow(
+      ({
+        urlList,
+        usage,
+        favorites,
+        tabs,
+        currentTab,
+        keybindings,
+        commandKeys,
+      }) => ({
+        urlList,
+        usage,
+        favorites,
+        tabs,
+        currentTab,
+        keybindings,
+        commandKeys,
+      }),
+    ),
   );
   const [query, setQuery] = useState("");
   const [expandedGroupId, setExpandedGroupId] = useState(null);
@@ -104,7 +147,7 @@ export default function SearchView({ onClose }) {
       case "keybinding":
         return copyText(row.keybinding.combo);
       case "link":
-        return openInCurrentTab(row.url, onClose);
+        return openInCurrentTab(row, onClose);
       case "tab":
         return switchToTab(row.tab, onClose);
       case "task":

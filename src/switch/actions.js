@@ -37,12 +37,14 @@ export const openLink = attempt(async (url, close) => {
   close();
 }, couldNotOpen);
 
-// Navigation and Global links: load in the tab Switch was opened on
-export const openInCurrentTab = attempt(async (url, close) => {
+// Navigation, Global and Chrome links: count the use (before the popup can
+// close), then load in the tab Switch was opened on
+export const openInCurrentTab = attempt(async ({ url, linkId }, close) => {
+  state().recordUse(linkId);
   const tab = await getActiveTab(state().windowId);
   await tabAction("update", { tabId: tab?.id, url });
   close();
-}, couldNotOpen);
+}, ({ url }) => couldNotOpen(url));
 
 // Open tabs: bring that tab (and its window) to the front
 
@@ -70,7 +72,7 @@ export const runChromeAction = attempt(async (id, close) => {
 }, "Couldn't run that action.");
 
 const RESET_WARNING =
-  "Run it again to delete all your shortcuts and imported links.";
+  "Run it again to delete all your shortcuts, imported links, favorites and history.";
 
 const TASKS = {
   "fetch-youtube-playlists": async () => {

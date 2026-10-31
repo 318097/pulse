@@ -10,7 +10,7 @@ Switch lets the user assign a letter to a site and jump there with one key, sear
 
 ### `storage`
 
-Pulse uses `chrome.storage.local` to save the configured content sources and their cached cards, so the new tab loads quickly and keeps its state between tab opens. Switch stores the user's shortcuts (name, URL, letter, favorite flag) and any links the user imported, in the same local storage.
+Pulse uses `chrome.storage.local` to save the configured content sources and their cached cards, so the new tab loads quickly and keeps its state between tab opens. Switch stores the user's shortcuts (name, URL, letter, favorite flag), any links the user imported, the links they starred, and a count and last-used time for each Switch link they open (to list recent links first), in the same local storage.
 
 ### `tabs`
 

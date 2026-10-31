@@ -1,5 +1,6 @@
 // Builds the Search view's sections. Idle, web apps are collapsible groups; with a
 // query every section is filtered and groups flatten to "YouTube › Watch Later".
+// Links are ordered most recently used first, groups by their latest use.
 import {
   CHROME_ACTIONS,
   CHROME_PAGES,
@@ -13,6 +14,7 @@ import { matchesAll, pluralize, tokenize } from "../utils/text";
 import { displayUrl } from "../utils/url";
 
 const IDLE_SECTION_LIMIT = 5;
+const RECENT_LIMIT = 5;
 const KEYBINDINGS_LIMIT = 6;
 
 // Navigation rows show the short URL ("youtube.com/feed/history"); Global and
@@ -20,6 +22,7 @@ const KEYBINDINGS_LIMIT = 6;
 // `tag` (like "playlist") is shown before its URL.
 const linkRow = (link, title = link.title, shortUrl = false) => ({
   key: link.id,
+  linkId: link.id,
   type: "link",
   title,
   subtitle: shortUrl ? displayUrl(link.url) : link.url,
@@ -47,6 +50,42 @@ const taskRow = (task, title = task.title) => ({
   taskId: task.id,
 });
 
+// "YouTube › Playlists › Lo-fi"
+const destinationTitle = (group, child) =>
+  [group.label, child.nested && child.l1Label, child.title]
+    .filter(Boolean)
+    .join(" › ");
+
+// Most recently used first. Never-used items have time 0, so they keep their
+// catalog order (sort is stable).
+const byRecency = (items, time) =>
+  [...items].sort((a, b) => time(b) - time(a));
+
+// A group's destinations by recency, each still followed by its imported links
+// (also by recency); a group's time is its latest use of any of them
+const orderGroups = (groups, linkTime) => {
+  const blockTime = ({ child, nested }) =>
+    Math.max(linkTime(child), ...nested.map(linkTime));
+
+  const ordered = groups.map((group) => {
+    const blocks = [];
+    group.children.forEach((child) => {
+      if (child.nested && blocks.length) blocks.at(-1).nested.push(child);
+      else blocks.push({ child, nested: [] });
+    });
+    const sorted = byRecency(blocks, blockTime);
+    return {
+      ...group,
+      time: Math.max(0, ...sorted.map(blockTime)),
+      children: sorted.flatMap(({ child, nested }) => [
+        child,
+        ...byRecency(nested, linkTime),
+      ]),
+    };
+  });
+  return byRecency(ordered, (group) => group.time);
+};
+
 // A group lists its app's tasks after its destinations
 const navigationRows = (tokens, groups, expandedGroupId) =>
   groups.flatMap((group) => {
@@ -65,15 +104,7 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
             displayUrl(child.url),
           ),
         )
-        .map((child) =>
-          linkRow(
-            child,
-            [group.label, child.nested && child.l1Label, child.title]
-              .filter(Boolean)
-              .join(" › "),
-            true,
-          ),
-        );
+        .map((child) => linkRow(child, destinationTitle(group, child), true));
       const taskRows = tasks
         .filter((task) =>
           matchesAll(
@@ -112,7 +143,7 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
 
 // Chrome's actions, then its pages, then keys for what only Chrome can do. Every
 // row matches "chrome"; a toggle is titled for the tab Switch was opened on.
-const chromeRows = (tokens, currentTab) => {
+const chromeRows = (tokens, currentTab, linkTime) => {
   const matches = (...fields) => matchesAll(tokens, "Chrome", ...fields);
   const actions = CHROME_ACTIONS.map((action) => ({
     ...action,
@@ -130,9 +161,9 @@ const chromeRows = (tokens, currentTab) => {
       keys: action.keys,
       actionId: action.id,
     }));
-  const pages = CHROME_PAGES.filter((page) =>
-    matches(page.title, page.url),
-  ).map((page) => linkRow(page));
+  const pages = byRecency(CHROME_PAGES, linkTime)
+    .filter((page) => matches(page.title, page.url))
+    .map((page) => linkRow(page));
   const shortcuts = CHROME_SHORTCUTS.filter((shortcut) =>
     matches(shortcut.title, shortcut.description),
   ).map((shortcut) => keybindingRow(shortcut, "shortcut"));
@@ -172,11 +203,37 @@ export const buildSearchResults = ({
   commandKeys,
   expandedGroupId,
   shownSections,
+  usage,
+  favorites,
 }) => {
   const tokens = tokenize(query);
   const searching = tokens.length > 0;
-  const groups = getWebappGroups(urlList);
+  const linkTime = (link) => usage[link.id]?.lastUsed || 0;
+  const groups = orderGroups(getWebappGroups(urlList), linkTime);
   const navigation = navigationRows(tokens, groups, expandedGroupId);
+
+  // Every link a recent or favorite id can point to, titled in full
+  const links = new Map([
+    ...groups.flatMap((group) =>
+      group.children.map((child) => [
+        child.id,
+        linkRow(child, destinationTitle(group, child), true),
+      ]),
+    ),
+    ...[...GLOBALS, ...CHROME_PAGES].map((link) => [link.id, linkRow(link)]),
+  ]);
+  const linkRows = (ids, section) =>
+    ids
+      .filter((id) => links.has(id))
+      .map((id) => ({ ...links.get(id), key: `${section}:${id}` }));
+  const recent = linkRows(
+    byRecency(Object.keys(usage), (id) => usage[id].lastUsed),
+    "recent",
+  ).slice(0, RECENT_LIMIT);
+  const favoriteRows = linkRows(
+    byRecency(favorites, (id) => usage[id]?.lastUsed || 0),
+    "favorite",
+  );
 
   const commands = COMMANDS.filter((c) =>
     matchesAll(tokens, c.title, c.description),
@@ -226,14 +283,21 @@ export const buildSearchResults = ({
   const global = limited(
     "global",
     "Global",
-    GLOBALS.filter((link) => matchesAll(tokens, link.title, link.url)).map(
-      (link) => linkRow(link),
-    ),
+    byRecency(GLOBALS, linkTime)
+      .filter((link) => matchesAll(tokens, link.title, link.url))
+      .map((link) => linkRow(link)),
   );
-  const chrome = limited("chrome", "Chrome", chromeRows(tokens, currentTab));
+  const chrome = limited(
+    "chrome",
+    "Chrome",
+    chromeRows(tokens, currentTab, linkTime),
+  );
   const openTabs = ["tabs", "Open tabs", tabRows];
-  // Idle lists what Switch can do; a query leads with the closest matches
+  // Idle leads with recent and starred links, then lists what Switch can do; a
+  // query leads with the closest matches
   const sections = [
+    !searching && ["recent", "Recently used", recent],
+    !searching && ["favorites", "Favorites", favoriteRows],
     searching && ["keybindings", "Keyboard shortcuts", keybindingRows],
     ["commands", "Commands", commands],
     ["navigation", "Navigation", navigation, searching ? null : groups.length],
@@ -252,6 +316,7 @@ export const buildSearchResults = ({
   sections.forEach(({ rows }) =>
     rows.forEach((row) => {
       if (!row.child && row.type !== "more") row.number = ++number;
+      if (row.linkId) row.favorite = favorites.includes(row.linkId);
     }),
   );
 

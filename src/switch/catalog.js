@@ -219,7 +219,7 @@ export const TASKS = [
   {
     id: "reset-switch-data",
     title: "Reset Switch data",
-    description: "Delete all your shortcuts and imported links",
+    description: "Delete your shortcuts, imported links, favorites and history",
   },
 ];
 

@@ -16,9 +16,10 @@ Switch (ported from the standalone QuickSwitch extension) is a keyboard launcher
 
 - **Shortcuts**: give a site a letter, then `Alt+J` + that letter switches to its open tab (the most recently used one) or opens it. `Shift` + letter shows the shortcut's details and open tabs; `+` adds one, prefilled from the current page.
 - **Search**: commands, web app pages (YouTube › Watch Later, Gmail › Sent…), `.new` and other global links, Chrome, open tabs, your shortcuts, and the keyboard shortcut cards Pulse has shown you.
+- **Recently used and Favorites**: links are ordered most recently used first (groups by their latest use, destinations within them too), the last 5 used are listed at the top, and hovering a link shows a star that adds it to Favorites, listed right below.
 - **Chrome**: tab and window actions (Incognito, duplicate, pin, mute, move to a new window, full screen), `chrome://` pages, and Chrome's own keyboard shortcuts, each shown with Chrome's key for it.
 - **Tab commands**: sort tabs (`Alt+Shift+J`), cycle same-site tabs (`Alt+Shift+K`), cycle tabs of starred shortcuts (`Alt+K`).
-- **Tasks**: import your YouTube playlists into search with YouTube › Fetch playlists (run it on youtube.com/feed/playlists). Reset Switch data deletes your shortcuts and imported links (run it twice to confirm).
+- **Tasks**: import your YouTube playlists into search with YouTube › Fetch playlists (run it on youtube.com/feed/playlists). Reset Switch data deletes your shortcuts, imported links, favorites and usage history, then reloads Switch (run it twice to confirm).
 
 Keys can be changed at `chrome://extensions/shortcuts` (also linked from Settings). The code lives in `src/switch/`.
 

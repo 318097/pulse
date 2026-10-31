@@ -14,25 +14,39 @@ import { getKeybindings } from "./catalog";
 const HOME_VIEWS = ["search", "shortcuts"];
 const TOAST_DURATION = 3000;
 
-const pickSaved = ({ shortcuts = [], urlList = [], lastView } = {}) => ({
+const pickSaved = ({
+  shortcuts = [],
+  urlList = [],
+  usage = {},
+  favorites = [],
+  lastView,
+} = {}) => ({
   shortcuts,
   urlList,
+  usage,
+  favorites,
   lastView: HOME_VIEWS.includes(lastView) ? lastView : "search",
 });
 
 const useSwitchStore = create((set, get) => {
   const save = (update) => {
     set(update);
-    const { shortcuts, urlList, lastView } = get();
-    saveDataToStorage({ shortcuts, urlList, lastView }, SWITCH_KEY);
+    const { shortcuts, urlList, usage, favorites, lastView } = get();
+    saveDataToStorage(
+      { shortcuts, urlList, usage, favorites, lastView },
+      SWITCH_KEY,
+    );
   };
 
   return {
     loaded: false,
     // Saved: shortcuts are { _id, name, url, hotkey, favorite, createdAt };
-    // urlList holds imported links, like scraped YouTube playlists
+    // urlList holds imported links, like scraped YouTube playlists; usage maps a
+    // link's id to { count, lastUsed }; favorites are starred link ids
     shortcuts: [],
     urlList: [],
+    usage: {},
+    favorites: [],
     lastView: "search",
     // Context: commandKeys maps a command to its keys ([] when unassigned) and is
     // empty until read
@@ -120,11 +134,35 @@ const useSwitchStore = create((set, get) => {
 
     resetImportedLinks: () => save({ urlList: [] }),
 
-    // Deletes everything Switch saved: shortcuts, imported links, last view.
-    // Other open panels clear theirs through syncSwitch.
+    // Counts a use of the link and stamps when, for Recently used and the
+    // most-recent-first order
+    recordUse: (id) => {
+      const { count = 0 } = get().usage[id] || {};
+      save({
+        usage: {
+          ...get().usage,
+          [id]: { count: count + 1, lastUsed: Date.now() },
+        },
+      });
+    },
+
+    toggleFavorite: (id) => {
+      const { favorites } = get();
+      save({
+        favorites: favorites.includes(id)
+          ? favorites.filter((favorite) => favorite !== id)
+          : [...favorites, id],
+      });
+    },
+
+    // Deletes everything Switch saved (shortcuts, imported links, usage,
+    // favorites, last view), then loads afresh: unmounting the view drops its
+    // query and expanded sections too. Other open panels clear theirs through
+    // syncSwitch.
     resetSwitchData: async () => {
       await removeFromStorage(SWITCH_KEY);
-      set({ ...pickSaved(), view: "search", params: {} });
+      set({ loaded: false, params: {} });
+      await get().load({ windowId: get().windowId });
     },
 
     showToast: (message, type = "success") => {
@@ -154,8 +192,8 @@ export const syncSwitch = () => {
       switchChange && parseStored(switchChange.newValue ?? "{}");
     const entities = parseStored(changes[DEFAULT_ENTITIES_KEY]?.newValue);
     if (saved) {
-      const { shortcuts, urlList } = pickSaved(saved);
-      setState({ shortcuts, urlList });
+      const { shortcuts, urlList, usage, favorites } = pickSaved(saved);
+      setState({ shortcuts, urlList, usage, favorites });
     }
     if (entities) setState({ keybindings: getKeybindings(entities) });
   };

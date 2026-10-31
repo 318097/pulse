@@ -17,6 +17,7 @@ Pulse uses `chrome.storage.local` to store:
 - timestamps used to determine when content should refresh
 - Switch shortcuts the user creates (name, URL, letter and favorite flag)
 - links the user imports into Switch, such as YouTube playlist names and links
+- which Switch links the user opened, how many times and when, and the links they starred, to list recent and favorite links first
 
 This data stays in the user's browser and is used only to load the new tab page quickly, preserve the current card state between tab opens, and power Switch.
 
@@ -69,7 +70,7 @@ Pulse does not share user data with third parties except when necessary to opera
 
 ## Data retention
 
-Locally cached extension data remains in the browser until it is replaced, cleared by the user, or the extension is removed. Switch's Reset Switch data task deletes its shortcuts and imported links at any time.
+Locally cached extension data remains in the browser until it is replaced, cleared by the user, or the extension is removed. Switch's Reset Switch data task deletes its shortcuts, imported links, favorites and usage history at any time.
 
 Server logs, if collected by the hosting provider or API service, are retained only for operational, reliability, and security purposes and only as long as reasonably necessary.
 
