@@ -38,9 +38,10 @@ export const openLink = attempt(async (url, close) => {
 }, couldNotOpen);
 
 // Navigation, Global and Chrome links: count the use (before the popup can
-// close), then load in the tab Switch was opened on
+// close), then load in the tab Switch was opened on. A search inside a web app
+// has no link to count.
 export const openInCurrentTab = attempt(async ({ url, linkId }, close) => {
-  state().recordUse(linkId);
+  if (linkId) state().recordUse(linkId);
   const tab = await getActiveTab(state().windowId);
   await tabAction("update", { tabId: tab?.id, url });
   close();

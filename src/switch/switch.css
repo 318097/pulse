@@ -442,11 +442,11 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border: 1px solid var(--color-sw-edge);
-    border-radius: 7px;
-    color: var(--color-sw-muted);
+    border-radius: 6px;
+    color: #c1c2c5;
 
     &:hover,
     &[aria-expanded="true"] {
@@ -457,6 +457,38 @@
       border-color: var(--color-sw-accent-strong);
       background: rgb(34 139 230 / 0.12);
       color: var(--color-sw-accent-soft);
+    }
+  }
+
+  /* The web app a search is scoped to ("yt."), ahead of the search box */
+  .sw-scope-chip {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    margin-right: -4px;
+    padding: 0 4px 0 9px;
+    border: 1px solid var(--color-sw-accent-strong);
+    border-radius: 7px;
+    background: rgb(34 139 230 / 0.12);
+    color: var(--color-sw-accent-soft);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .sw-scope-clear {
+    display: flex;
+    padding: 3px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background: rgb(34 139 230 / 0.2);
+      color: var(--color-sw-text);
     }
   }
 

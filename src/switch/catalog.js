@@ -2,10 +2,11 @@
 // pages, web app pages, .new and other global links, and one-off tasks. Ported
 // from QuickSwitch's url.config.js.
 // `l0` are an app's aliases and `l1` a section's, so search finds `yt watch` and
-// `yt p music`.
+// `yt p music`; `yt.` scopes the search to YouTube.
 
 import { capitalize } from "../utils/text";
 import { IS_MAC, parseKeyCombo } from "../utils/keys";
+import { getSite, googleSearchUrl } from "../utils/url";
 
 // The command that opens Switch (labelled "Open Switch"). It keeps the id it
 // shipped with: Chrome keeps the key bound to this id for the extension, so a
@@ -233,12 +234,15 @@ export const YOUTUBE_PLAYLISTS = {
   tag: "playlist",
 };
 
+// `search` is the path a query is added to when searching inside the app
+// ("yt.lofi"); apps without one search through Google
 const WEBAPPS = [
   {
     appName: "youtube",
     label: "YouTube",
     l0: ["yt"],
     url: "https://www.youtube.com",
+    search: "/results?search_query=",
     paths: [
       ["Watch Later", "/playlist?list=WL"],
       ["Liked Videos", "/playlist?list=LL"],
@@ -252,6 +256,7 @@ const WEBAPPS = [
     label: "Gmail",
     l0: ["gm"],
     url: "https://mail.google.com",
+    search: "/mail/u/0/#search/",
     paths: [
       ["Compose", "/mail/#inbox?compose=new"],
       ["Starred", "/mail/#starred"],
@@ -265,6 +270,7 @@ const WEBAPPS = [
     label: "Google Drive",
     l0: ["gd"],
     url: "https://drive.google.com",
+    search: "/drive/search?q=",
     paths: [
       ["My Drive", "/drive/my-drive"],
       ["Shared with me", "/drive/shared-with-me"],
@@ -278,6 +284,7 @@ const WEBAPPS = [
     label: "GitHub",
     l0: ["gh", "git"],
     url: "https://github.com",
+    search: "/search?q=",
     paths: [
       ["Pull Requests", "/pulls"],
       ["Issues", "/issues"],
@@ -291,6 +298,7 @@ const WEBAPPS = [
     label: "LinkedIn",
     l0: ["ln", "li"],
     url: "https://www.linkedin.com",
+    search: "/search/results/all/?keywords=",
     paths: [
       ["Profile", "/in/me/"],
       ["My Network", "/mynetwork"],
@@ -305,6 +313,7 @@ const WEBAPPS = [
     label: "X",
     l0: ["x"],
     url: "https://x.com",
+    search: "/search?q=",
     paths: [
       ["Grok", "/i/grok"],
       ["Explore", "/explore"],
@@ -319,6 +328,7 @@ const WEBAPPS = [
     label: "Instagram",
     l0: ["ig", "insta"],
     url: "https://www.instagram.com",
+    search: "/explore/search/keyword/?q=",
     paths: [
       ["Messages", "/direct/inbox/"],
       ["Explore", "/explore/"],
@@ -330,6 +340,7 @@ const WEBAPPS = [
     label: "Reddit",
     l0: ["rd"],
     url: "https://www.reddit.com",
+    search: "/search/?q=",
     paths: [
       ["Popular", "/r/popular/"],
       ["Saved", "/user/me/saved/"],
@@ -340,6 +351,7 @@ const WEBAPPS = [
     label: "Facebook",
     l0: ["fb"],
     url: "https://www.facebook.com",
+    search: "/search/top?q=",
     paths: [
       ["Profile", "/me"],
       ["Messages", "/messages"],
@@ -351,6 +363,7 @@ const WEBAPPS = [
     label: "Amazon",
     l0: ["az"],
     url: "https://www.amazon.in",
+    search: "/s?k=",
     paths: [
       ["Orders", "/gp/css/order-history"],
       ["Cart", "/gp/cart/view.html"],
@@ -362,6 +375,7 @@ const WEBAPPS = [
     label: "Netflix",
     l0: ["nf"],
     url: "https://www.netflix.com",
+    search: "/search?q=",
     paths: [
       ["My List", "/browse/my-list"],
       ["Latest", "/latest"],
@@ -372,6 +386,7 @@ const WEBAPPS = [
     label: "Spotify",
     l0: ["sp"],
     url: "https://open.spotify.com",
+    search: "/search/",
     paths: [
       ["Your Library", "/collection"],
       ["Liked Songs", "/collection/tracks"],
@@ -382,6 +397,7 @@ const WEBAPPS = [
     label: "Flipkart",
     l0: ["fk"],
     url: "https://www.flipkart.com",
+    search: "/search?q=",
     paths: [
       ["Orders", "/account/orders"],
       ["Wishlist", "/wishlist"],
@@ -410,6 +426,7 @@ const WEBAPPS = [
     label: "TikTok",
     l0: ["tt"],
     url: "https://www.tiktok.com",
+    search: "/search?q=",
     paths: [["Explore", "/explore"]],
   },
 ];
@@ -424,6 +441,18 @@ const WEBAPP_GROUPS = WEBAPPS.map(({ paths, ...app }) => ({
     url: `${app.url}${path}`,
   })),
 }));
+
+// The web app an alias names: "yt" -> YouTube
+export const findWebapp = (alias = "") => {
+  const key = alias.trim().toLowerCase();
+  return WEBAPP_GROUPS.find((app) => app.l0.includes(key));
+};
+
+// A search inside the web app, on its own search page or else through Google
+export const siteSearchUrl = (app, query) =>
+  app.search
+    ? `${app.url}${app.search}${encodeURIComponent(query)}`
+    : googleSearchUrl(`site:${getSite(app.url)} ${query}`);
 
 // Gmail and Google Drive are web app groups; Chrome's pages have their own section
 export const GLOBALS = [

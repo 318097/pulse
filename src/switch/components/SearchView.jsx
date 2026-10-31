@@ -1,8 +1,15 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollArea, TextInput } from "@mantine/core";
-import { CaretDownIcon, CaretRightIcon, StarIcon } from "@phosphor-icons/react";
+import {
+  CaretDownIcon,
+  CaretRightIcon,
+  GlobeIcon,
+  StarIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 import { useShallow } from "zustand/react/shallow";
 import useSwitchStore from "../store";
+import { findWebapp } from "../catalog";
 import { buildSearchResults } from "../search";
 import { googleSearchUrl } from "../../utils/url";
 import {
@@ -71,6 +78,25 @@ const RowEnd = ({ row, selected }) => {
   );
 };
 
+// The web app the search is scoped to; × or Backspace in the empty box leaves it
+const ScopeChip = ({ app, onClear }) => (
+  <span className="sw-scope-chip">
+    <GlobeIcon size={14} />
+    {app.label}
+    <button
+      type="button"
+      className="sw-scope-clear"
+      aria-label={`Leave ${app.label}`}
+      title={`Leave ${app.label}`}
+      // Keeps keyboard focus in the search box
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={onClear}
+    >
+      <XIcon size={11} weight="bold" />
+    </button>
+  </span>
+);
+
 const RowSubtitle = ({ row }) =>
   row.tag ? (
     <span className="flex items-center gap-2">
@@ -115,6 +141,8 @@ export default function SearchView({ onClose }) {
     ),
   );
   const [query, setQuery] = useState("");
+  // The web app the search is limited to ("yt." -> YouTube)
+  const [scope, setScope] = useState(null);
   const [expandedGroupId, setExpandedGroupId] = useState(null);
   const [shownSections, setShownSections] = useState([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -123,8 +151,14 @@ export default function SearchView({ onClose }) {
 
   const { sections, rows, tokens } = useMemo(
     () =>
-      buildSearchResults({ ...data, query, expandedGroupId, shownSections }),
-    [data, query, expandedGroupId, shownSections],
+      buildSearchResults({
+        ...data,
+        query,
+        scope,
+        expandedGroupId,
+        shownSections,
+      }),
+    [data, query, scope, expandedGroupId, shownSections],
   );
   const selected = rows[Math.min(selectedIdx, rows.length - 1)];
   const select = (idx) =>
@@ -134,8 +168,33 @@ export default function SearchView({ onClose }) {
     rowRefs.current[selectedIdx]?.scrollIntoView({ block: "nearest" });
   }, [selectedIdx]);
 
+  // "yt." scopes the search to YouTube, keeping anything typed after the dot
+  const changeQuery = (value) => {
+    const [, alias, rest = ""] =
+      (!scope && value.match(/^\s*([^\s.]+)\.(.*)$/)) || [];
+    const app = findWebapp(alias);
+    if (app) setScope(app);
+    setQuery(app ? rest.trimStart() : value);
+    select(0);
+  };
+
+  const enterScope = (app) => {
+    setScope(app);
+    setQuery("");
+    select(0);
+    inputRef.current?.focus();
+  };
+
+  const leaveScope = () => {
+    setScope(null);
+    select(0);
+    inputRef.current?.focus();
+  };
+
   const activate = (row) => {
     switch (row.type) {
+      case "scope":
+        return enterScope(row.app);
       case "group":
         return setExpandedGroupId(row.expanded ? null : row.groupId);
       case "more":
@@ -180,18 +239,38 @@ export default function SearchView({ onClose }) {
       setExpandedGroupId(null);
       select(rows.findIndex((row) => row.key === selected.groupId));
     },
+    // Backspace in the empty box leaves the web app the search is scoped to
+    Backspace: () => {
+      if (!scope || query) return false;
+      leaveScope();
+    },
+    // Clears the query, then the scope, then closes
     Escape: () => {
-      if (!query) return onClose?.();
-      setQuery("");
-      select(0);
+      if (query) {
+        setQuery("");
+        return select(0);
+      }
+      if (scope) return leaveScope();
+      onClose?.();
     },
   };
+
+  // An alias swaps the arrows hint for "."; inside a web app, Backspace leaves it
+  const suggested = !scope && findWebapp(query);
+  const hints = [
+    suggested
+      ? [["."], `search in ${suggested.label}`]
+      : [["↑", "↓"], "select"],
+    [["↵"], ENTER_LABELS[selected?.type] || "open"],
+    scope ? [["⌫"], `leave ${scope.label}`] : [["Tab"], "shortcuts"],
+  ];
 
   let rowIdx = -1;
 
   return (
     <View keymap={keymap} autoFocus={false}>
       <HomeHeader view="search" active onClose={onClose}>
+        {scope && <ScopeChip app={scope} onClear={leaveScope} />}
         <TextInput
           ref={inputRef}
           className="flex-1"
@@ -199,18 +278,27 @@ export default function SearchView({ onClose }) {
           classNames={{
             input: "text-[17px]! text-sw-text! placeholder:text-sw-faint",
           }}
-          placeholder="Search across websites, shortcuts & tabs"
+          placeholder={
+            scope
+              ? `Search ${scope.label}`
+              : "Search across websites, shortcuts & tabs"
+          }
           value={query}
-          onChange={(event) => {
-            setQuery(event.currentTarget.value);
-            select(0);
-          }}
+          onChange={(event) => changeQuery(event.currentTarget.value)}
           data-autofocus
           autoFocus
           spellCheck={false}
           aria-label="Search"
         />
-        <SectionFilter onClose={() => inputRef.current?.focus()} />
+        {scope ? (
+          query.trim() && (
+            <span className="shrink-0 font-sw-mono text-[11.5px] text-sw-faint">
+              {rows.length} in {scope.label}
+            </span>
+          )
+        ) : (
+          <SectionFilter onClose={() => inputRef.current?.focus()} />
+        )}
       </HomeHeader>
 
       <ScrollArea className="min-h-0 flex-1" type="hover" scrollbarSize={6}>
@@ -229,7 +317,12 @@ export default function SearchView({ onClose }) {
                     number={row.number}
                     child={row.child}
                     nested={row.nested}
-                    title={<Highlight text={row.title} tokens={tokens} />}
+                    title={
+                      <Highlight
+                        text={row.title}
+                        tokens={row.highlight || tokens}
+                      />
+                    }
                     subtitle={<RowSubtitle row={row} />}
                     selected={row === selected}
                     right={<RowEnd row={row} selected={row === selected} />}
@@ -252,13 +345,7 @@ export default function SearchView({ onClose }) {
         </div>
       </ScrollArea>
 
-      <PanelFooter
-        hints={[
-          [["↑", "↓"], "select"],
-          [["↵"], ENTER_LABELS[selected?.type] || "open"],
-          [["Tab"], "shortcuts"],
-        ]}
-      />
+      <PanelFooter hints={hints} />
     </View>
   );
 }

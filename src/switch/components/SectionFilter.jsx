@@ -1,5 +1,4 @@
 import { Checkbox, Popover, UnstyledButton } from "@mantine/core";
-import { FunnelSimpleIcon } from "@phosphor-icons/react";
 import { useShallow } from "zustand/react/shallow";
 import useSwitchStore from "../store";
 import { SECTIONS, isSectionVisible } from "../search";
@@ -12,8 +11,25 @@ const ALWAYS_SHOWN = new Intl.ListFormat("en").format(
   SECTIONS.filter((section) => !section.filterable).map(({ label }) => label),
 );
 
-// The search header's section filter: a funnel icon, filled and tinted once
-// some sections are hidden. `onClose` hands focus back to the search box.
+// Three lines narrowing like a funnel, sized to the design; they thicken once
+// some sections are hidden
+const FilterIcon = ({ filtered }) => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 14 14"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={filtered ? 2 : 1.5}
+    strokeLinecap="round"
+    aria-hidden
+  >
+    <path d="M2.75 3.75h8.5M4.25 7h5.5M5.75 10.25h2.5" />
+  </svg>
+);
+
+// The search header's section filter: a funnel icon, tinted once some
+// sections are hidden. `onClose` hands focus back to the search box.
 export default function SectionFilter({ onClose }) {
   const { sectionVisibility, toggleSection, showAllSections } = useSwitchStore(
     useShallow(({ sectionVisibility, toggleSection, showAllSections }) => ({
@@ -44,7 +60,7 @@ export default function SectionFilter({ onClose }) {
           aria-label={label}
           title={label}
         >
-          <FunnelSimpleIcon size={16} weight={filtered ? "fill" : "regular"} />
+          <FilterIcon filtered={filtered} />
         </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown>

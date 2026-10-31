@@ -1,5 +1,6 @@
 // Builds the Search view's sections. Idle, web apps are collapsible groups; with a
 // query every section is filtered and groups flatten to "YouTube › Watch Later".
+// Scoped to a web app ("yt."), only that app's results show.
 // Links are ordered most recently used first, groups by their latest use.
 import {
   CHROME_ACTIONS,
@@ -8,10 +9,12 @@ import {
   COMMANDS,
   GLOBALS,
   TASKS,
+  findWebapp,
   getWebappGroups,
+  siteSearchUrl,
 } from "./catalog";
 import { matchesAll, pluralize, tokenize } from "../utils/text";
-import { displayUrl } from "../utils/url";
+import { displayUrl, isUrlMatch } from "../utils/url";
 
 // The Search view's sections, in the order the results and the filter list them.
 // `visible` is whether a section shows until it's toggled; `filterable: false`
@@ -95,6 +98,26 @@ const taskRow = (task, title = task.title) => ({
   taskId: task.id,
 });
 
+const tabRow = (tab) => ({
+  key: `tab:${tab.id}`,
+  type: "tab",
+  title: tab.title || displayUrl(tab.url),
+  subtitle: displayUrl(tab.url),
+  tab,
+});
+
+// Typing an alias on its own ("yt") offers to search inside its web app, which
+// picking the row or typing "." does
+const scopeRow = (app, alias) => ({
+  key: `scope:${app.appName}`,
+  type: "scope",
+  title: `Search in ${app.label}`,
+  subtitle: `Alias ${alias} · type . to look only inside ${app.label}`,
+  highlight: [app.label],
+  keys: ["."],
+  app,
+});
+
 // "YouTube › Playlists › Lo-fi"
 const destinationTitle = (group, child) =>
   [group.label, child.nested && child.l1Label, child.title]
@@ -164,11 +187,12 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
     }
 
     const expanded = group.id === expandedGroupId;
+    // Names the aliases that scope the search to the app ("yt.")
     const parent = {
       key: group.id,
       type: "group",
       title: group.label,
-      subtitle: `${displayUrl(group.url)} · ${pluralize(group.children.length, "destination")}`,
+      subtitle: `${displayUrl(group.url)} · alias ${group.l0.join(", ")} · ${pluralize(group.children.length, "destination")}`,
       groupId: group.id,
       expanded,
     };
@@ -215,6 +239,90 @@ const chromeRows = (tokens, currentTab, linkTime) => {
   return [...actions, ...pages, ...shortcuts];
 };
 
+// Searching inside one web app, in the full search's order: its destinations,
+// imported links under their destination's name ("Playlists"), open tabs and
+// tasks, then a search on the app itself
+const scopedSections = ({
+  app,
+  group,
+  query,
+  tokens,
+  tabs,
+  currentTab,
+  linkTime,
+}) => {
+  const linkRows = (links) =>
+    links
+      .filter((link) =>
+        matchesAll(
+          tokens,
+          link.title,
+          link.l1Label,
+          ...(link.l1 || []),
+          displayUrl(link.url),
+        ),
+      )
+      .map((link) => linkRow(link, link.title, true));
+
+  const own = new Set(app.children.map(({ id }) => id));
+  const links = byRecency(group.children, linkTime);
+  const destinations = links.filter(({ id }) => own.has(id));
+  const imported = links.filter(({ id }) => !own.has(id));
+  const importedSections = [
+    ...new Set(imported.map(({ l1Label }) => l1Label)),
+  ].map((label) => ({
+    id: `imported:${label}`,
+    title: label || "Imported",
+    rows: linkRows(imported.filter(({ l1Label }) => l1Label === label)),
+  }));
+
+  const tabRows = tabs
+    .filter((tab) => tab.id !== currentTab?.id && isUrlMatch(tab.url, app.url))
+    .filter((tab) => matchesAll(tokens, tab.title, tab.url))
+    .map(tabRow);
+  const taskRows = TASKS.filter((task) => task.appName === app.appName)
+    .filter((task) => matchesAll(tokens, task.title, task.description))
+    .map((task) => taskRow(task));
+
+  const term = query.trim();
+  const searchUrl = siteSearchUrl(app, term);
+  const searchRows = term
+    ? [
+        {
+          key: `search:${app.appName}`,
+          type: "link",
+          title: `Search ${app.label} for “${term}”`,
+          subtitle: displayUrl(searchUrl),
+          url: searchUrl,
+        },
+      ]
+    : [];
+
+  return [
+    { id: "destinations", title: "Destinations", rows: linkRows(destinations) },
+    ...importedSections,
+    { id: "tabs", title: "Open tabs", rows: tabRows },
+    { id: "tasks", title: "Tasks", rows: taskRows },
+    { id: "search", title: "Search", rows: searchRows },
+  ]
+    .filter((s) => s.rows.length)
+    .map((s) => ({ ...s, count: s.rows.length }));
+};
+
+// Numbers top-level rows like the design (group children and "more" rows
+// aren't), marks starred links, and lists the rows arrow keys move through
+const withRows = (sections, tokens, favorites) => {
+  let number = 0;
+  sections.forEach(({ rows }) =>
+    rows.forEach((row) => {
+      if (!row.child && row.type !== "more") row.number = ++number;
+      if (row.linkId) row.favorite = favorites.includes(row.linkId);
+    }),
+  );
+
+  return { sections, rows: sections.flatMap((s) => s.rows), tokens };
+};
+
 // Idle, a long section lists its first rows and a "Show N more" row until that
 // row is picked
 const limitRows = (sectionId, rows, searching, shownSections) => {
@@ -237,9 +345,10 @@ const limitRows = (sectionId, rows, searching, shownSections) => {
 };
 
 // Returns the visible sections plus the flat list of rows arrow keys move through.
-// Top-level rows are numbered like the design; group children and "more" rows aren't.
+// `scope` is the web app the search is limited to, if any.
 export const buildSearchResults = ({
   query,
+  scope,
   urlList,
   tabs,
   currentTab,
@@ -255,6 +364,21 @@ export const buildSearchResults = ({
   const searching = tokens.length > 0;
   const linkTime = (link) => usage[link.id]?.lastUsed || 0;
   const groups = orderGroups(getWebappGroups(urlList), linkTime);
+
+  if (scope) {
+    const group = groups.find(({ appName }) => appName === scope.appName);
+    const sections = scopedSections({
+      app: scope,
+      group,
+      query,
+      tokens,
+      tabs,
+      currentTab,
+      linkTime,
+    });
+    return withRows(sections, tokens, favorites);
+  }
+
   const navigation = navigationRows(tokens, groups, expandedGroupId);
 
   // Every link a recent or favorite id can point to, titled in full
@@ -302,13 +426,7 @@ export const buildSearchResults = ({
   const tabRows = tabs
     .filter((tab) => tab.id !== currentTab?.id)
     .filter((tab) => matchesAll(tokens, tab.title, tab.url))
-    .map((tab) => ({
-      key: `tab:${tab.id}`,
-      type: "tab",
-      title: tab.title || displayUrl(tab.url),
-      subtitle: displayUrl(tab.url),
-      tab,
-    }));
+    .map(tabRow);
 
   // App tasks sit in their web app group. Resetting imported links only makes
   // sense once there are some.
@@ -354,13 +472,19 @@ export const buildSearchResults = ({
     .filter((s) => s.rows.length)
     .map((s) => ({ ...s, count: s.count ?? s.rows.length }));
 
-  let number = 0;
-  sections.forEach(({ rows }) =>
-    rows.forEach((row) => {
-      if (!row.child && row.type !== "more") row.number = ++number;
-      if (row.linkId) row.favorite = favorites.includes(row.linkId);
-    }),
-  );
+  // An alias on its own leads with searching inside its web app
+  const alias = query.trim().toLowerCase();
+  const app = findWebapp(alias);
+  const suggestion = app
+    ? [
+        {
+          id: "scope",
+          title: "Search in",
+          count: 1,
+          rows: [scopeRow(app, alias)],
+        },
+      ]
+    : [];
 
-  return { sections, rows: sections.flatMap((s) => s.rows), tokens };
+  return withRows([...suggestion, ...sections], tokens, favorites);
 };
