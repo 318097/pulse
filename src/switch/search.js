@@ -1,7 +1,8 @@
 // Builds the Search view's sections. Idle, web apps are collapsible groups; with a
 // query every section is filtered and groups flatten to "YouTube › Watch Later".
 // Scoped to a web app ("yt."), only that app's results show.
-// Links are ordered most recently used first, groups by their latest use.
+// Links are ordered most recently used first, groups by their latest use; with a
+// query, a web app's home page still leads its group.
 import {
   CHROME_ACTIONS,
   CHROME_PAGES,
@@ -159,7 +160,12 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
     const tasks = TASKS.filter((task) => task.appName === group.appName);
 
     if (tokens.length) {
-      const links = group.children
+      // The app's home page leads, however recently its other links were used
+      const isHome = (child) => child.url === group.url;
+      const links = [
+        ...group.children.filter(isHome),
+        ...group.children.filter((child) => !isHome(child)),
+      ]
         .filter((child) =>
           matchesAll(
             tokens,
