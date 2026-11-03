@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollArea, TextInput } from "@mantine/core";
 import {
+  ArrowRightIcon,
   CaretDownIcon,
-  CaretRightIcon,
   GlobeIcon,
   StarIcon,
   XIcon,
@@ -68,7 +68,7 @@ const FavoriteButton = ({ row }) => {
 
 const RowEnd = ({ row, selected }) => {
   if (row.type === "group") {
-    const Caret = row.expanded ? CaretDownIcon : CaretRightIcon;
+    const Caret = row.expanded ? CaretDownIcon : ArrowRightIcon;
     return <Caret size={14} className="text-sw-faint" />;
   }
   return (
