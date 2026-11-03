@@ -126,6 +126,7 @@ export default function SearchView({ onClose }) {
         favorites,
         sectionVisibility,
         tabs,
+        bookmarkFolders,
         currentTab,
         keybindings,
         commandKeys,
@@ -135,6 +136,7 @@ export default function SearchView({ onClose }) {
         favorites,
         sectionVisibility,
         tabs,
+        bookmarkFolders,
         currentTab,
         keybindings,
         commandKeys,
@@ -281,7 +283,7 @@ export default function SearchView({ onClose }) {
           placeholder={
             scope
               ? `Search ${scope.label}`
-              : "Search across websites, shortcuts & tabs"
+              : "Search sites, shortcuts, tabs & bookmarks"
           }
           value={query}
           onChange={(event) => changeQuery(event.currentTarget.value)}

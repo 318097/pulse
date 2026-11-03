@@ -2,9 +2,9 @@
 
 ## 1. Single purpose
 
-Pulse makes every new tab a quick start point: it replaces the Chrome new tab page with one daily refreshed learning card (a word, a tech read or a keyboard shortcut) and includes Switch, a keyboard launcher for getting to the sites and tabs the user wants next.
+Pulse makes every new tab a quick start point: it replaces the Chrome new tab page with one daily refreshed learning card (a word, a tech read or a keyboard shortcut) and includes Switch, a keyboard launcher for getting to the sites, tabs and bookmarks the user wants next.
 
-Switch lets the user assign a letter to a site and jump there with one key, search web app pages, browser pages and open tabs, sort or cycle through tabs in the current window, and run Chrome's own tab and window actions (such as pin, mute, duplicate or open in Incognito) on the tab it was opened on. It opens over the Pulse new tab, from the toolbar button, or with its keyboard shortcut. The extension does not provide ad blocking, shopping features, or background access to the content of arbitrary websites.
+Switch lets the user assign a letter to a site and jump there with one key, search web app pages, browser pages, open tabs and bookmarks, sort or cycle through tabs in the current window, and run Chrome's own tab and window actions (such as pin, mute, duplicate or open in Incognito) on the tab it was opened on. It opens over the Pulse new tab, from the toolbar button, or with its keyboard shortcut. The extension does not provide ad blocking, shopping features, or background access to the content of arbitrary websites.
 
 ## 2. Permission justification
 
@@ -15,6 +15,10 @@ Pulse uses `chrome.storage.local` to save the configured content sources and the
 ### `tabs`
 
 Switch reads the titles and URLs of the tabs in the current window to list them in search, show how many tabs are open for each shortcut, switch to an already open tab instead of opening a duplicate, and sort or cycle tabs on request. Tab data is only used in the browser and is never sent anywhere.
+
+### `bookmarks`
+
+Switch reads the titles, URLs and folders of the user's bookmarks to list them in search and open the one the user picks. Pulse never adds, edits or removes bookmarks. Bookmark data is only used in the browser and is never stored or sent anywhere.
 
 ### `activeTab` and `scripting`
 

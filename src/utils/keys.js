@@ -58,7 +58,7 @@ const splitShortcut = (shortcut) => {
   return { modifiers: [...modifiers], key };
 };
 
-export const parseCommandShortcut = (shortcut = "", isMac = IS_MAC) => {
+const parseCommandShortcut = (shortcut = "", isMac = IS_MAC) => {
   if (!shortcut) return [];
 
   const { modifiers, key } = splitShortcut(shortcut);

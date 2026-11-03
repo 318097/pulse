@@ -3,9 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import useSwitchStore from "../store";
 import { SECTIONS, isSectionVisible } from "../search";
 
-// Soon sections are listed but can't be toggled
 const FILTERS = SECTIONS.filter((section) => section.filterable);
-const FILTERABLE = FILTERS.filter((section) => !section.soon);
 // "Recently used, Favorites, and Shortcuts"
 const ALWAYS_SHOWN = new Intl.ListFormat("en").format(
   SECTIONS.filter((section) => !section.filterable).map(({ label }) => label),
@@ -38,7 +36,7 @@ export default function SectionFilter({ onClose }) {
       showAllSections,
     })),
   );
-  const filtered = FILTERABLE.some(
+  const filtered = FILTERS.some(
     ({ id }) => !isSectionVisible(id, sectionVisibility),
   );
   const label = filtered ? "Filter sections (some hidden)" : "Filter sections";
@@ -77,22 +75,16 @@ export default function SectionFilter({ onClose }) {
             </UnstyledButton>
           )}
         </div>
-        {FILTERS.map(({ id, label, soon }) => (
-          <label
-            key={id}
-            className="sw-filter-option"
-            data-disabled={soon || undefined}
-          >
+        {FILTERS.map(({ id, label }) => (
+          <label key={id} className="sw-filter-option">
             <Checkbox
               size="xs"
               radius="sm"
               checked={isSectionVisible(id, sectionVisibility)}
-              disabled={soon}
               onChange={() => toggleSection(id)}
               classNames={{ input: "sw-checkbox" }}
             />
             <span className="flex-1">{label}</span>
-            {soon && <span className="text-[12px] text-sw-faint">Soon</span>}
           </label>
         ))}
         <div className="mx-3 mt-1.5 border-t border-sw-divider py-2.5 text-[12px] text-sw-faint">

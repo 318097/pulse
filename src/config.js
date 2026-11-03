@@ -10,11 +10,6 @@ const BASE_URL = API_ENV === "production" ? PROD_BASE : DEV_BASE;
 
 const isProd = API_ENV === "production";
 
-export const APP_CONFIG = {
-  apiEnv: API_ENV,
-  baseUrl: BASE_URL,
-};
-
 export const DEFAULT_ENTITIES_KEY = "pulse:entities";
 export const DEFAULT_ACTIVE_ENTITY_KEY = "pulse:activeEntity";
 export const SWITCH_KEY = "pulse:switch";

@@ -65,10 +65,10 @@ export const useDynamicEntity = (entity, onUpdate) => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
 
-    // if (entity.refreshDuration) {
-    //   const intervalId = setInterval(fetchData, entity.refreshDuration * 1000);
-    //   return () => clearInterval(intervalId);
-    // }
+    if (entity.refreshDuration) {
+      const intervalId = setInterval(fetchData, entity.refreshDuration * 1000);
+      return () => clearInterval(intervalId);
+    }
 
     return undefined;
   }, [entity, fetchData]);

@@ -11,7 +11,6 @@ import { getDataFromStorage } from "./utils/storage";
 import useStore from "./store";
 import Settings from "./components/Settings";
 import SwitchModal from "./switch/SwitchModal";
-import { useTailwindDarkMode } from "./hooks/useTailwindDarkMode";
 
 // Handlers live at module scope so their identity is stable across renders;
 // useDynamicEntity's fetch effect depends on onUpdate and would otherwise re-run every render.
@@ -47,7 +46,6 @@ export default function App() {
     activeEntityIdx,
     loading,
   } = useStore();
-  useTailwindDarkMode();
 
   // calculate it on every render so that it updates when the activeEntityIdx changes
   // falls back to the first source when the index no longer fits (sources toggled in Settings)

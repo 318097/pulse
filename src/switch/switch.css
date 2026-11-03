@@ -511,14 +511,6 @@
     &:hover {
       background: var(--color-sw-hover);
     }
-    &[data-disabled] {
-      color: var(--color-sw-faint);
-      cursor: default;
-
-      &:hover {
-        background: none;
-      }
-    }
   }
 
   .sw-checkbox {
@@ -529,11 +521,6 @@
     &:checked {
       border-color: var(--color-sw-accent);
       background: var(--color-sw-accent);
-    }
-    &:disabled {
-      border-color: var(--color-sw-divider);
-      background: transparent;
-      cursor: default;
     }
   }
 }

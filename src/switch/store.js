@@ -9,6 +9,7 @@ import {
   removeFromStorage,
   saveDataToStorage,
 } from "../utils/storage";
+import { getBookmarkFolders } from "../utils/bookmarks";
 import { getCommandKeys } from "../utils/keys";
 import { getActiveTab, getWindowTabs } from "../utils/tabs";
 import { getKeybindings } from "./catalog";
@@ -68,6 +69,7 @@ const useSwitchStore = create((set, get) => {
     windowId: undefined,
     tabs: [],
     currentTab: null,
+    bookmarkFolders: [],
     // UI
     view: "search",
     params: {},
@@ -86,7 +88,7 @@ const useSwitchStore = create((set, get) => {
         windowId,
         loaded: true,
       });
-      await get().refreshTabs();
+      await Promise.all([get().refreshTabs(), get().refreshBookmarks()]);
     },
 
     refreshTabs: async () => {
@@ -98,13 +100,17 @@ const useSwitchStore = create((set, get) => {
       set({ tabs, currentTab });
     },
 
+    refreshBookmarks: async () =>
+      set({ bookmarkFolders: await getBookmarkFolders() }),
+
     refreshCommandKeys: async () =>
       set({ commandKeys: await getCommandKeys() }),
 
     // Each time the panel opens: back to the last home view, with fresh tabs
+    // and bookmarks
     reopen: () => {
       set({ view: get().lastView, params: {}, toast: null });
-      return get().refreshTabs();
+      return Promise.all([get().refreshTabs(), get().refreshBookmarks()]);
     },
 
     setView: (view, params = {}) =>
@@ -174,9 +180,10 @@ const useSwitchStore = create((set, get) => {
     showAllSections: () =>
       save({
         sectionVisibility: Object.fromEntries(
-          SECTIONS.filter(({ filterable, soon }) => filterable && !soon).map(
-            ({ id }) => [id, true],
-          ),
+          SECTIONS.filter(({ filterable }) => filterable).map(({ id }) => [
+            id,
+            true,
+          ]),
         ),
       }),
 

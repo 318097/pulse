@@ -20,8 +20,7 @@ import { displayUrl, isUrlMatch } from "../utils/url";
 // The Search view's sections, in the order the results and the filter list them.
 // `visible` is whether a section shows until it's toggled; `filterable: false`
 // sections aren't in the filter and always show. `when` limits a section to idle
-// ("idle") or to a query ("search"). Soon sources are listed in the filter but
-// can't be turned on yet.
+// ("idle") or to a query ("search").
 export const SECTIONS = [
   {
     id: "recent",
@@ -49,14 +48,14 @@ export const SECTIONS = [
   { id: "global", label: "Global", visible: true, filterable: true },
   { id: "chrome", label: "Chrome", visible: true, filterable: true },
   { id: "tabs", label: "Open tabs", visible: true, filterable: true },
+  { id: "bookmarks", label: "Bookmarks", visible: true, filterable: true },
   { id: "tasks", label: "Tasks", visible: true, filterable: true },
-  // { id: "bookmarks", label: "Bookmarks", visible: false, filterable: true, soon: true },
 ];
 
 // A filterable section's saved choice, else its default
 export const isSectionVisible = (id, sectionVisibility = {}) => {
   const section = SECTIONS.find((s) => s.id === id);
-  if (!section || section.soon) return false;
+  if (!section) return false;
   if (!section.filterable) return section.visible;
   return sectionVisibility[id] ?? section.visible;
 };
@@ -64,6 +63,8 @@ export const isSectionVisible = (id, sectionVisibility = {}) => {
 const IDLE_SECTION_LIMIT = 5;
 const RECENT_LIMIT = 5;
 const KEYBINDINGS_LIMIT = 6;
+// Bookmarks can run to thousands, so a query lists only the first matches too
+const BOOKMARKS_SEARCH_LIMIT = 20;
 
 // Navigation rows show the short URL ("youtube.com/feed/history"); Global and
 // Chrome rows show it in full, since they're .new and chrome:// links. A link's
@@ -106,6 +107,20 @@ const tabRow = (tab) => ({
   tab,
 });
 
+const bookmarkTitle = (bookmark) => bookmark.title || displayUrl(bookmark.url);
+
+// Opens like a link, in the tab Switch was opened on. The subfolders it sits in
+// within its folder lead the subtitle: "Tools › CLI · github.com/acme".
+const bookmarkRow = (bookmark, title = bookmarkTitle(bookmark)) => ({
+  key: `bookmark:${bookmark.id}`,
+  type: "link",
+  title,
+  subtitle: [bookmark.subfolder, displayUrl(bookmark.url)]
+    .filter(Boolean)
+    .join(" · "),
+  url: bookmark.url,
+});
+
 // Typing an alias on its own ("yt") offers to search inside its web app, which
 // picking the row or typing "." does
 const scopeRow = (app, alias) => ({
@@ -127,6 +142,33 @@ const destinationTitle = (group, child) =>
 // Most recently used first. Never-used items have time 0, so they keep their
 // catalog order (sort is stable).
 const byRecency = (items, time) => [...items].sort((a, b) => time(b) - time(a));
+
+// Bookmark folders by their last opened bookmark (Chrome stamps when), each
+// folder's bookmarks the same way
+const orderBookmarkFolders = (folders) => {
+  const time = (bookmark) => bookmark.dateLastUsed || 0;
+  const ordered = folders.map((folder) => ({
+    ...folder,
+    bookmarks: byRecency(folder.bookmarks, time),
+  }));
+  return byRecency(ordered, ({ bookmarks }) => time(bookmarks[0]));
+};
+
+// A folder's bookmarks matching the query, titled "Dev › MDN"
+const matchingBookmarkRows = (tokens, folder, bookmarks = folder.bookmarks) =>
+  bookmarks
+    .filter((bookmark) =>
+      matchesAll(
+        tokens,
+        folder.title,
+        bookmark.subfolder,
+        bookmark.title,
+        displayUrl(bookmark.url),
+      ),
+    )
+    .map((bookmark) =>
+      bookmarkRow(bookmark, `${folder.title} › ${bookmarkTitle(bookmark)}`),
+    );
 
 // A group's destinations by recency, each still followed by its imported links
 // (also by recency); a group's time is its latest use of any of them
@@ -214,6 +256,34 @@ const navigationRows = (tokens, groups, expandedGroupId) =>
     return [parent, ...children];
   });
 
+// Like web apps: idle, each bookmark folder is a group that opens to list its
+// bookmarks; with a query they flatten to "Dev › MDN"
+const bookmarkFolderRows = (tokens, folders, expandedGroupId) =>
+  folders.flatMap((folder) => {
+    if (tokens.length) return matchingBookmarkRows(tokens, folder);
+
+    const groupId = `bookmark-folder:${folder.id}`;
+    const expanded = groupId === expandedGroupId;
+    const parent = {
+      key: groupId,
+      type: "group",
+      title: folder.title,
+      subtitle: [folder.parent, pluralize(folder.bookmarks.length, "bookmark")]
+        .filter(Boolean)
+        .join(" · "),
+      groupId,
+      expanded,
+    };
+    const children = expanded
+      ? folder.bookmarks.map((bookmark) => ({
+          ...bookmarkRow(bookmark),
+          child: true,
+          groupId,
+        }))
+      : [];
+    return [parent, ...children];
+  });
+
 // Chrome's actions, then its pages, then keys for what only Chrome can do. Every
 // row matches "chrome"; a toggle is titled for the tab Switch was opened on.
 const chromeRows = (tokens, currentTab, linkTime) => {
@@ -245,14 +315,15 @@ const chromeRows = (tokens, currentTab, linkTime) => {
 };
 
 // Searching inside one web app, in the full search's order: its destinations,
-// imported links under their destination's name ("Playlists"), open tabs and
-// tasks, then a search on the app itself
+// imported links under their destination's name ("Playlists"), open tabs,
+// bookmarks and tasks, then a search on the app itself
 const scopedSections = ({
   app,
   group,
   query,
   tokens,
   tabs,
+  bookmarkFolders,
   currentTab,
   linkTime,
 }) => {
@@ -285,6 +356,13 @@ const scopedSections = ({
     .filter((tab) => tab.id !== currentTab?.id && isUrlMatch(tab.url, app.url))
     .filter((tab) => matchesAll(tokens, tab.title, tab.url))
     .map(tabRow);
+  const bookmarkRows = bookmarkFolders.flatMap((folder) =>
+    matchingBookmarkRows(
+      tokens,
+      folder,
+      folder.bookmarks.filter((bookmark) => isUrlMatch(bookmark.url, app.url)),
+    ),
+  );
   const taskRows = TASKS.filter((task) => task.appName === app.appName)
     .filter((task) => matchesAll(tokens, task.title, task.description))
     .map((task) => taskRow(task));
@@ -307,6 +385,7 @@ const scopedSections = ({
     { id: "destinations", title: "Destinations", rows: linkRows(destinations) },
     ...importedSections,
     { id: "tabs", title: "Open tabs", rows: tabRows },
+    { id: "bookmarks", title: "Bookmarks", rows: bookmarkRows },
     { id: "tasks", title: "Tasks", rows: taskRows },
     { id: "search", title: "Search", rows: searchRows },
   ]
@@ -328,22 +407,18 @@ const withRows = (sections, tokens, favorites) => {
   return { sections, rows: sections.flatMap((s) => s.rows), tokens };
 };
 
-// Idle, a long section lists its first rows and a "Show N more" row until that
-// row is picked
-const limitRows = (sectionId, rows, searching, shownSections) => {
-  if (
-    searching ||
-    shownSections.includes(sectionId) ||
-    rows.length <= IDLE_SECTION_LIMIT
-  ) {
+// A section longer than `limit` lists its first rows and a "Show N more" row
+// until that row is picked; with no limit it lists them all
+const limitRows = (sectionId, rows, limit, shownSections) => {
+  if (!limit || shownSections.includes(sectionId) || rows.length <= limit) {
     return rows;
   }
   return [
-    ...rows.slice(0, IDLE_SECTION_LIMIT),
+    ...rows.slice(0, limit),
     {
       key: `more:${sectionId}`,
       type: "more",
-      title: `Show ${rows.length - IDLE_SECTION_LIMIT} more`,
+      title: `Show ${rows.length - limit} more`,
       sectionId,
     },
   ];
@@ -356,6 +431,7 @@ export const buildSearchResults = ({
   scope,
   urlList,
   tabs,
+  bookmarkFolders,
   currentTab,
   keybindings,
   commandKeys,
@@ -369,6 +445,7 @@ export const buildSearchResults = ({
   const searching = tokens.length > 0;
   const linkTime = (link) => usage[link.id]?.lastUsed || 0;
   const groups = orderGroups(getWebappGroups(urlList), linkTime);
+  const folders = orderBookmarkFolders(bookmarkFolders);
 
   if (scope) {
     const group = groups.find(({ appName }) => appName === scope.appName);
@@ -378,6 +455,7 @@ export const buildSearchResults = ({
       query,
       tokens,
       tabs,
+      bookmarkFolders: folders,
       currentTab,
       linkTime,
     });
@@ -385,6 +463,7 @@ export const buildSearchResults = ({
   }
 
   const navigation = navigationRows(tokens, groups, expandedGroupId);
+  const bookmarks = bookmarkFolderRows(tokens, folders, expandedGroupId);
 
   // Every link a recent or favorite id can point to, titled in full
   const links = new Map([
@@ -441,9 +520,15 @@ export const buildSearchResults = ({
     .filter((t) => matchesAll(tokens, t.title, t.description))
     .map((t) => taskRow(t));
 
-  // Counted in full, though idle they show only their first rows
-  const limited = (id, rows) => ({
-    rows: limitRows(id, rows, searching, shownSections),
+  // Counted in full, though idle (or past `searchLimit` with a query) they show
+  // only their first rows
+  const limited = (id, rows, searchLimit) => ({
+    rows: limitRows(
+      id,
+      rows,
+      searching ? searchLimit : IDLE_SECTION_LIMIT,
+      shownSections,
+    ),
     count: rows.length,
   });
   const content = {
@@ -463,6 +548,10 @@ export const buildSearchResults = ({
     ),
     chrome: limited("chrome", chromeRows(tokens, currentTab, linkTime)),
     tabs: { rows: tabRows },
+    // Folders are counted like web apps; a query's matches are limited
+    bookmarks: searching
+      ? limited("bookmarks", bookmarks, BOOKMARKS_SEARCH_LIMIT)
+      : { rows: bookmarks, count: folders.length },
     tasks: { rows: taskRows },
   };
   // Idle leads with recent and starred links, a query with shortcuts;
