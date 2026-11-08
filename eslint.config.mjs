@@ -5,7 +5,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import prettier from "eslint-config-prettier";
 
 export default [
-  { ignores: ["dist/", ".turbo/"] },
+  { ignores: ["dist/", ".turbo/", ".claude/"] },
 
   js.configs.recommended,
 
@@ -36,7 +36,7 @@ export default [
 
   // Build tooling configs run in Node as CommonJS
   {
-    files: ["*.config.js"],
+    files: ["*.config.js", "scripts/**/*.js"],
     languageOptions: {
       sourceType: "commonjs",
       globals: globals.node,

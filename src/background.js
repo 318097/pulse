@@ -1,10 +1,7 @@
-import {
-  buildDefaultEntities,
-  getDataFromStorage,
-  KEYS_TO_SKIP,
-  saveDataToStorage,
-} from "./config";
+import { buildDefaultEntities, KEYS_TO_SKIP } from "./config";
+import { getDataFromStorage, saveDataToStorage } from "./utils/storage";
 import pick from "lodash/pick";
+import "./switch/background";
 
 const runVersionUpdateCallback = (callback) => {
   chrome.runtime.onInstalled.addListener((details) => {

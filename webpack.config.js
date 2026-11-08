@@ -10,6 +10,7 @@ module.exports = (_, argv = {}) => {
     mode,
     entry: {
       app: "./src/index.jsx",
+      switch: "./src/switch/popup.jsx",
       background: "./src/background.js",
     },
     output: {
@@ -66,6 +67,7 @@ module.exports = (_, argv = {}) => {
       new CopyPlugin({
         patterns: [
           { from: "index.html", to: "index.html" },
+          { from: "switch.html", to: "switch.html" },
           { from: "manifest.json", to: "manifest.json" },
           { from: "images", to: "images" },
         ],

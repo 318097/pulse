@@ -1,17 +1,16 @@
 import { useEffect } from "react";
-import { ActionIcon, Badge, useMantineColorScheme } from "@mantine/core";
+import { Badge } from "@mantine/core";
 import DynamicEntity from "./components/DynamicEntity";
 import Header from "./components/Header";
 import {
   DEFAULT_ACTIVE_ENTITY_KEY,
   DEFAULT_ENTITIES_KEY,
   buildDefaultEntities,
-  getDataFromStorage,
 } from "./config";
-import { SunDimIcon, MoonIcon } from "@phosphor-icons/react";
+import { getDataFromStorage } from "./utils/storage";
 import useStore from "./store";
 import Settings from "./components/Settings";
-import { useTailwindDarkMode } from "./hooks/useTailwindDarkMode";
+import SwitchModal from "./switch/SwitchModal";
 
 // Handlers live at module scope so their identity is stable across renders;
 // useDynamicEntity's fetch effect depends on onUpdate and would otherwise re-run every render.
@@ -40,7 +39,6 @@ const handleEntityUpdate = (entityId, data) => {
 };
 
 export default function App() {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const {
     setEntities,
     setActiveEntityIdx,
@@ -48,10 +46,10 @@ export default function App() {
     activeEntityIdx,
     loading,
   } = useStore();
-  useTailwindDarkMode();
 
   // calculate it on every render so that it updates when the activeEntityIdx changes
-  const activeEntity = visibleEntities[activeEntityIdx];
+  // falls back to the first source when the index no longer fits (sources toggled in Settings)
+  const activeEntity = visibleEntities[activeEntityIdx] ?? visibleEntities[0];
 
   // Load entities from storage on mount (once); zustand setters are stable
   useEffect(() => {
@@ -67,39 +65,38 @@ export default function App() {
     );
   }, [setEntities, setActiveEntityIdx]);
 
-  if (!activeEntity || loading) return null;
+  if (loading) return null;
 
   return (
     <div className="w-full h-full flex flex-col overflow-y-auto">
       <Header />
       <main className="flex-1 flex items-center justify-center">
-        <div className="flex flex-col gap-2 w-140 items-center justify-center">
-          <Badge
-            className="self-start mb-1 font-mono font-light"
-            variant="light"
-            color="blue"
-            size="md"
-            radius="sm"
-          >
-            {activeEntity.label}
-          </Badge>
-          <DynamicEntity
-            entity={activeEntity}
-            onError={handleEntityError}
-            onUpdate={handleEntityUpdate}
-          />
-        </div>
+        {activeEntity ? (
+          <div className="flex flex-col gap-2 w-140 items-center justify-center">
+            <Badge
+              className="self-start mb-1 font-mono font-light"
+              variant="light"
+              color="blue"
+              size="md"
+              radius="sm"
+            >
+              {activeEntity.label}
+            </Badge>
+            <DynamicEntity
+              entity={activeEntity}
+              onError={handleEntityError}
+              onUpdate={handleEntityUpdate}
+            />
+          </div>
+        ) : (
+          // every source is switched off; keep the header so Settings stays reachable
+          <p className="font-mono text-sm text-neutral-400">
+            All sources are off. Turn one on in Settings.
+          </p>
+        )}
       </main>
-      {/* <div className="fixed bottom-4 right-4">
-        <ActionIcon
-          variant="subtle"
-          color="cyan"
-          onClick={() => toggleColorScheme()}
-        >
-          {colorScheme === "dark" ? <SunDimIcon /> : <MoonIcon />}
-        </ActionIcon>
-      </div> */}
       <Settings />
+      <SwitchModal />
     </div>
   );
 }

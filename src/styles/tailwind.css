@@ -1,6 +1,7 @@
 /* Mantine sits below utilities so Tailwind classes can override component styles */
 @layer theme, base, mantine, components, utilities;
 @import "tailwindcss";
+@import "../switch/switch.css";
 
 html,
 body,
